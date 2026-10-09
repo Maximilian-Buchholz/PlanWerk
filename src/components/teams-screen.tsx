@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,12 +22,19 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import ReanimatedSwipeable, { type SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
+import Reanimated, {
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/avatar";
 import { AvatarStack } from "@/components/avatar-stack";
 import { Spacing } from "@/constants/theme";
+import { getErrorMessage } from "@/lib/errors";
 import type { Team } from "@/lib/teams";
 import { Icon } from "@/components/icons";
 import { avatarFallbackColor, colors } from "@/theme/colors";
@@ -153,7 +160,8 @@ export function TeamsScreen({
       setTeamMemberIds([]);
       closeSheet();
     } catch (error) {
-      setTeamError(error instanceof Error ? error.message : "Team konnte nicht erstellt werden.");
+      console.error("Team konnte nicht erstellt werden:", error);
+      setTeamError(getErrorMessage(error, "Team konnte nicht erstellt werden."));
     } finally {
       setIsCreatingTeam(false);
     }
@@ -165,8 +173,6 @@ export function TeamsScreen({
       { text: "Löschen", style: "destructive", onPress: () => onDeleteTeam?.(team.id) },
     ]);
   }
-
-  const friendSwipeRefs = useRef<Record<string, Swipeable | null>>({});
 
   function handleRemoveFriend(friend: Profile) {
     Alert.alert("Freund entfernen?", `${friend.full_name ?? "Dieser Nutzer"} wird aus deiner Freundesliste entfernt.`, [
@@ -266,14 +272,6 @@ export function TeamsScreen({
 
           <View style={styles.actionRow}>
             <Pressable
-              onPress={() => setActiveSheet("friend")}
-              style={({ pressed }) => [styles.actionButton, pressed && styles.searchButtonPressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Freund hinzufügen"
-            >
-              <AddFriendGlyph />
-            </Pressable>
-            <Pressable
               onPress={() => setActiveSheet("team")}
               style={({ pressed }) => [styles.actionButton, pressed && styles.searchButtonPressed]}
               accessibilityRole="button"
@@ -309,63 +307,19 @@ export function TeamsScreen({
           ) : (
             <View style={styles.friendList}>
               {friends.map((friend) => (
-                <View key={friend.id}>
-                  <Swipeable
-                    ref={(ref) => {
-                      friendSwipeRefs.current[friend.id] = ref;
-                    }}
-                    renderRightActions={() => (
-                      <Pressable
-                        onPress={() => {
-                          friendSwipeRefs.current[friend.id]?.close();
-                          handleRemoveFriend(friend);
-                        }}
-                        style={styles.friendDeleteAction}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${friend.full_name ?? "Unbekannt"} als Freund entfernen`}
-                      >
-                        <TrashGlyph color="#FFFFFF" />
-                      </Pressable>
-                    )}
-                  >
-                  <View style={[styles.card, styles.friendRow]}>
-                    <Avatar
-                      name={friend.full_name}
-                      color={friend.avatar_color}
-                      size={32}
-                      status={
-                        !onlineUserIds?.has(friend.id)
-                          ? "offline"
-                          : friend.is_do_not_disturb
-                            ? "dnd"
-                            : "online"
-                      }
-                    />
-                    <View style={styles.friendInfo}>
-                      <Text style={styles.friendName} numberOfLines={1}>
-                        {friend.full_name ?? "Unbekannt"}
-                      </Text>
-                      {friend.is_out_of_office && (
-                        <View style={styles.statusRow}>
-                          <View style={styles.statusBadge}>
-                            <Icon name="briefcase" size={14} color={colors.textMuted} />
-                            <Text style={styles.statusText}>Out of office</Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                    <Pressable
-                      onPress={() => onMessageFriend?.(friend)}
-                      hitSlop={8}
-                      style={styles.messageButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Nachricht an ${friend.full_name ?? "Unbekannt"} schreiben`}
-                    >
-                      <Icon name="send" size={22} color={colors.brandOrange} />
-                    </Pressable>
-                  </View>
-                  </Swipeable>
-                </View>
+                <FriendCard
+                  key={friend.id}
+                  friend={friend}
+                  status={
+                    !onlineUserIds?.has(friend.id)
+                      ? "offline"
+                      : friend.is_do_not_disturb
+                        ? "dnd"
+                        : "online"
+                  }
+                  onMessage={() => onMessageFriend?.(friend)}
+                  onRemove={() => handleRemoveFriend(friend)}
+                />
               ))}
             </View>
           )}
@@ -373,31 +327,26 @@ export function TeamsScreen({
           {ownedTeams.length > 0 && (
             <>
               <Text style={styles.sectionLabel}>DEINE TEAMS</Text>
-              <View style={styles.card}>
-                {ownedTeams.map((team, index) => (
-                  <View key={team.id}>
-                    {index > 0 && <View style={styles.rowDivider} />}
-                    <View style={styles.teamRow}>
-                      <AvatarStack profiles={team.members} size={28} />
-                      <View style={styles.teamTextCol}>
-                        <Text style={styles.friendName} numberOfLines={1}>
-                          {team.name}
-                        </Text>
-                        <Text style={styles.teamMemberCount}>
-                          {team.members.length} {team.members.length === 1 ? "Mitglied" : "Mitglieder"}
-                        </Text>
-                      </View>
-                      <Pressable
-                        onPress={() => handleDeleteTeam(team)}
-                        hitSlop={8}
-                        style={styles.messageButton}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Team ${team.name} löschen`}
-                      >
-                        <TrashGlyph />
-                      </Pressable>
-                    </View>
-                  </View>
+              <View style={styles.friendList}>
+                {ownedTeams.map((team) => (
+                  <SwipeToRemoveCard
+                    key={team.id}
+                    removeLabel={`Team ${team.name} löschen`}
+                    onRemove={() => handleDeleteTeam(team)}
+                    identity={
+                      <>
+                        <AvatarStack profiles={team.members} size={28} />
+                        <View style={styles.teamTextCol}>
+                          <Text style={styles.friendName} numberOfLines={1}>
+                            {team.name}
+                          </Text>
+                          <Text style={styles.teamMemberCount}>
+                            {team.members.length} {team.members.length === 1 ? "Mitglied" : "Mitglieder"}
+                          </Text>
+                        </View>
+                      </>
+                    }
+                  />
                 ))}
               </View>
             </>
@@ -433,6 +382,15 @@ export function TeamsScreen({
           )}
 
         </ScrollView>
+
+      <Pressable
+        onPress={() => setActiveSheet("friend")}
+        style={({ pressed }) => [styles.fab, pressed && styles.searchButtonPressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Freund hinzufügen"
+      >
+        <AddFriendGlyph />
+      </Pressable>
       </KeyboardAvoidingView>
 
       <Modal
@@ -607,6 +565,118 @@ function TrashGlyph({ color = colors.priorityHighText }: { color?: string }) {
   );
 }
 
+/** Mirrors a shared value into another one from within the swipe's action panel. */
+function SyncSharedValue({ source, target }: { source: SharedValue<number>; target: SharedValue<number> }) {
+  useAnimatedReaction(
+    () => source.value,
+    (value) => {
+      target.value = value;
+    },
+  );
+  return null;
+}
+
+/**
+ * A card that can be swiped left to reveal a red delete action. While the card
+ * slides left, `identity` (who/what is being removed) slides right by the same
+ * distance, so it stays visible. `trailing` moves with the card.
+ */
+function SwipeToRemoveCard({
+  identity,
+  trailing,
+  removeLabel,
+  onRemove,
+}: {
+  identity: ReactNode;
+  trailing?: ReactNode;
+  removeLabel: string;
+  onRemove: () => void;
+}) {
+  const swipeRef = useRef<SwipeableMethods>(null);
+  const swipeX = useSharedValue(0);
+  const counterSlide = useAnimatedStyle(() => ({
+    transform: [{ translateX: -Math.min(0, swipeX.value) }],
+  }));
+
+  return (
+    // The rounded clip keeps the card's left edge round while it slides out of view.
+    <View style={styles.friendClip}>
+      <ReanimatedSwipeable
+        ref={swipeRef}
+        renderRightActions={(_progress, translation) => (
+          <>
+            <SyncSharedValue source={translation} target={swipeX} />
+            <Pressable
+              onPress={() => {
+                swipeRef.current?.close();
+                onRemove();
+              }}
+              style={styles.friendDeleteAction}
+              accessibilityRole="button"
+              accessibilityLabel={removeLabel}
+            >
+              <TrashGlyph color="#FFFFFF" />
+            </Pressable>
+          </>
+        )}
+      >
+        <View style={[styles.card, styles.friendRow]}>
+          <Reanimated.View style={[styles.friendIdentity, counterSlide]}>{identity}</Reanimated.View>
+          {trailing}
+        </View>
+      </ReanimatedSwipeable>
+    </View>
+  );
+}
+
+function FriendCard({
+  friend,
+  status,
+  onMessage,
+  onRemove,
+}: {
+  friend: Profile;
+  status: "online" | "dnd" | "offline";
+  onMessage: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <SwipeToRemoveCard
+      removeLabel={`${friend.full_name ?? "Unbekannt"} als Freund entfernen`}
+      onRemove={onRemove}
+      identity={
+        <>
+          <Avatar name={friend.full_name} color={friend.avatar_color} size={32} status={status} />
+          <View style={styles.friendInfo}>
+            <Text style={styles.friendName} numberOfLines={1}>
+              {friend.full_name ?? "Unbekannt"}
+            </Text>
+            {friend.is_out_of_office && (
+              <View style={styles.statusRow}>
+                <View style={styles.statusBadge}>
+                  <Icon name="briefcase" size={14} color={colors.textMuted} />
+                  <Text style={styles.statusText}>Out of office</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </>
+      }
+      trailing={
+        <Pressable
+          onPress={onMessage}
+          hitSlop={8}
+          style={styles.messageButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Nachricht an ${friend.full_name ?? "Unbekannt"} schreiben`}
+        >
+          <Icon name="send" size={22} color={colors.brandOrange} />
+        </Pressable>
+      }
+    />
+  );
+}
+
 function AddFriendGlyph() {
   return (
     <View style={glyphStyles.addFriend}>
@@ -683,11 +753,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 0.5,
     color: colors.textMutedLight,
+    marginBottom: Spacing.two,
   },
   searchRow: {
     flexDirection: "row",
     gap: Spacing.two,
     alignItems: "center",
+    paddingBottom: Spacing.three,
   },
   emailInput: {
     flex: 1,
@@ -720,12 +792,14 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_400Regular",
     fontSize: 13,
     color: colors.priorityHighText,
+    marginBottom: Spacing.three,
   },
   foundRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
-    paddingTop: Spacing.two,
+    marginTop: Spacing.one,
+    paddingTop: Spacing.three,
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
   },
@@ -766,6 +840,16 @@ const styles = StyleSheet.create({
     width: 72,
     borderRadius: CARD_RADIUS,
     marginLeft: Spacing.two,
+  },
+  friendClip: {
+    borderRadius: CARD_RADIUS,
+    overflow: "hidden",
+  },
+  friendIdentity: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
   },
   friendInfo: {
     flex: 1,
@@ -838,10 +922,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.ink,
     padding: 0,
-    paddingBottom: Spacing.two,
+    paddingBottom: Spacing.three,
   },
   teamMembersLabel: {
-    marginTop: Spacing.two,
+    marginTop: Spacing.three,
   },
   memberPickRow: {
     flexDirection: "row",
@@ -872,14 +956,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: CARD_RADIUS,
     paddingHorizontal: 19,
     paddingTop: Spacing.four,
-    paddingBottom: Spacing.six,
-    maxHeight: "75%",
+    // Generous bottom padding lifts the sheet's content well above the screen edge.
+    paddingBottom: 160,
+    maxHeight: "85%",
   },
   modalTitle: {
     fontFamily: "DMSans_600SemiBold",
     fontSize: 18,
     color: colors.ink,
-    marginBottom: Spacing.three,
+    marginBottom: Spacing.four,
   },
   modalList: {
     backgroundColor: "#FFFFFF",
@@ -906,6 +991,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brandOrange,
     alignItems: "center",
     justifyContent: "center",
+  },
+  fab: {
+    position: "absolute",
+    right: 19,
+    bottom: Spacing.three,
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: colors.brandOrange,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   createTeamButtonText: {
     fontFamily: "DMMono_500Medium",

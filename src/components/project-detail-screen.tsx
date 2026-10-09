@@ -149,7 +149,6 @@ export function ProjectDetailScreen({
                 accessibilityLabel="Zurück zu Projekte"
               >
                 <Text style={styles.backIcon}>‹</Text>
-                <Text style={styles.backLabel}>PROJEKTE</Text>
               </Pressable>
 
               <Pressable
@@ -244,9 +243,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  // Same back button as the other screens (profile, teams, messages …).
   backRow: {
-    flexDirection: "row",
+    width: 32,
+    height: 32,
     alignItems: "center",
+    justifyContent: "center",
     marginLeft: -Spacing.two,
     marginBottom: Spacing.two,
   },
@@ -258,15 +260,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.two,
   },
   backIcon: {
-    fontSize: 22,
-    color: colors.textMuted,
-    marginRight: 2,
-  },
-  backLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
+    fontSize: 26,
+    color: colors.ink,
   },
   titleRow: {
     flexDirection: "row",
@@ -325,7 +320,7 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 19,
-    bottom: 97,
+    bottom: Spacing.three,
     width: 50,
     height: 50,
     borderRadius: 15,

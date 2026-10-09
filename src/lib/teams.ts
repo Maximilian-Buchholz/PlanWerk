@@ -48,7 +48,11 @@ export async function createTeam(input: {
   const { error: membersError } = await supabase
     .from("team_members")
     .insert(memberIds.map((userId) => ({ team_id: team.id, user_id: userId })));
-  if (membersError) throw membersError;
+  if (membersError) {
+    // Don't leave an empty team behind when the member rows could not be written.
+    await supabase.from("teams").delete().eq("id", team.id);
+    throw membersError;
+  }
 
   await notifyUsers({
     recipientIds: input.memberIds,
@@ -61,6 +65,10 @@ export async function createTeam(input: {
 }
 
 export async function deleteTeam(teamId: string) {
-  const { error } = await supabase.from("teams").delete().eq("id", teamId);
+  const { data, error } = await supabase.from("teams").delete().eq("id", teamId).select("id");
   if (error) throw error;
+  // Row-level security turns a forbidden delete into "0 rows", not an error.
+  if (!data || data.length === 0) {
+    throw new Error("Team konnte nicht gelöscht werden. Fehlt die Löschberechtigung in Supabase?");
+  }
 }

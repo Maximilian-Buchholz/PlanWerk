@@ -17,9 +17,16 @@ import {
   Text,
   View,
 } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/avatar";
+import { Icon } from "@/components/icons";
 import { Spacing } from "@/constants/theme";
 import type { AppNotification } from "@/lib/friends";
 import { avatarFallbackColor, colors } from "@/theme/colors";
@@ -354,9 +361,7 @@ export function InboxScreen({
                 <Text style={styles.dateLabel}>{formatCardDate(item.createdAt)}</Text>
               </View>
 
-              <Text style={styles.bodyText} numberOfLines={2}>
-                {item.title}
-              </Text>
+              <ExpandableBody text={item.title} />
 
               {showActions && (
                 <>
@@ -394,6 +399,88 @@ export function InboxScreen({
         SectionSeparatorComponent={() => <View style={{ height: Spacing.three }} />}
       />
     </SafeAreaView>
+  );
+}
+
+const BODY_LINE_HEIGHT = 20;
+const BODY_COLLAPSED_LINES = 2;
+const BODY_EXPAND_DURATION_MS = 300;
+const BODY_EXPAND_EASING = Easing.bezier(0.4, 0, 0.2, 1);
+/** Rough length at which two lines of text overflow; only used to decide whether to offer the arrow. */
+const BODY_LONG_TEXT_CHARS = 80;
+
+/** Message text clamped to two lines; long messages get an arrow that expands them like a task card. */
+function ExpandableBody({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  // The ellipsis only works with numberOfLines, so it is dropped while expanded/animating.
+  const [clamped, setClamped] = useState(true);
+  const progress = useSharedValue(0);
+  const fullHeight = useSharedValue(0);
+  const collapsedHeight = BODY_LINE_HEIGHT * BODY_COLLAPSED_LINES;
+  const isLong = text.length > BODY_LONG_TEXT_CHARS || text.split("\n").length > BODY_COLLAPSED_LINES;
+
+  useEffect(() => {
+    progress.value = withTiming(expanded ? 1 : 0, {
+      duration: BODY_EXPAND_DURATION_MS,
+      easing: BODY_EXPAND_EASING,
+    });
+    if (expanded) {
+      setClamped(false);
+      return;
+    }
+    const timer = setTimeout(() => setClamped(true), BODY_EXPAND_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [expanded, progress]);
+
+  const bodyStyle = useAnimatedStyle(() => ({
+    height:
+      fullHeight.value > collapsedHeight
+        ? collapsedHeight + (fullHeight.value - collapsedHeight) * progress.value
+        : undefined,
+  }));
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${(1 - progress.value) * 180}deg` }],
+  }));
+
+  if (!isLong) {
+    return <Text style={[styles.bodyText, styles.bodyWrap]}>{text}</Text>;
+  }
+
+  return (
+    <View>
+      <View style={styles.bodyWrap}>
+        <Animated.View style={[styles.bodyClip, bodyStyle]}>
+          <Text style={styles.bodyText} numberOfLines={clamped ? BODY_COLLAPSED_LINES : undefined}>
+            {text}
+          </Text>
+        </Animated.View>
+        {/* Invisible copy that reports the full text height for the animation. */}
+        <Text
+          style={[styles.bodyText, styles.bodyMeasure]}
+          pointerEvents="none"
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+          onLayout={(event) => {
+            fullHeight.value = event.nativeEvent.layout.height;
+          }}
+        >
+          {text}
+        </Text>
+      </View>
+      {/* Spans the whole card so the arrow sits centered on it. */}
+      <View style={styles.bodyChevronRow}>
+        <Pressable
+          onPress={() => setExpanded((value) => !value)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={expanded ? "Nachricht einklappen" : "Nachricht ausklappen"}
+        >
+          <Animated.View style={chevronStyle}>
+            <Icon name="chevronUp" size={20} color={colors.textMutedLight} />
+          </Animated.View>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -568,8 +655,28 @@ const styles = StyleSheet.create({
   bodyText: {
     fontFamily: "DMSans_400Regular",
     fontSize: 14,
+    lineHeight: BODY_LINE_HEIGHT,
     color: colors.ink,
+  },
+  bodyWrap: {
     marginLeft: 44 + Spacing.two,
+  },
+  bodyClip: {
+    overflow: "hidden",
+  },
+  bodyMeasure: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    opacity: 0,
+  },
+  // The pull-back of -Spacing.two cancels half of the card's bottom padding, so the
+  // arrow sits evenly between the message and the card's bottom edge.
+  bodyChevronRow: {
+    alignItems: "center",
+    paddingTop: Spacing.two,
+    marginBottom: -Spacing.two,
   },
   cardDivider: {
     height: 1,
