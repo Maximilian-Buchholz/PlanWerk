@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageScreen } from '@/components/message-screen';
 import { getCurrentProfile, getCurrentUserId } from '@/lib/auth';
 import { sendDirectMessage } from '@/lib/friends';
+import { avatarFallbackColor } from '@/theme/colors';
 
 export default function MessageRoute() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function MessageRoute() {
       recipient={{
         id: friendId,
         full_name: friendName || null,
-        avatar_color: friendColor || '#8E8D8F',
+        avatar_color: friendColor || avatarFallbackColor,
       }}
       onBack={() => router.back()}
       onSend={async (body) => {

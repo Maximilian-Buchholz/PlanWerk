@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/avatar";
 import { PriorityBadge } from "@/components/priority-badge";
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import { avatarFallbackColor, colors } from "@/theme/colors";
 import type { Priority, Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -152,7 +152,7 @@ export function CalendarScreen({
           accessibilityRole="button"
           accessibilityLabel="Zum Profil"
         >
-          <Avatar name={currentUser?.full_name ?? null} color="#000000" shape="square" size={40} />
+          <Avatar name={currentUser?.full_name ?? null} color={currentUser?.avatar_color ?? avatarFallbackColor} shape="square" size={40} />
         </Pressable>
       </View>
       <View style={styles.headerDivider} />

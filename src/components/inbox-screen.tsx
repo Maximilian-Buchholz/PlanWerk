@@ -22,7 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/avatar";
 import { Spacing } from "@/constants/theme";
 import type { AppNotification } from "@/lib/friends";
-import { colors } from "@/theme/colors";
+import { avatarFallbackColor, colors } from "@/theme/colors";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -234,7 +234,7 @@ export function InboxScreen({
             accessibilityRole="button"
             accessibilityLabel="Zum Profil"
           >
-            <Avatar name={currentUser?.full_name ?? null} color="#000000" shape="square" size={40} />
+            <Avatar name={currentUser?.full_name ?? null} color={currentUser?.avatar_color ?? avatarFallbackColor} shape="square" size={40} />
           </Pressable>
         )}
       </View>
@@ -340,7 +340,7 @@ export function InboxScreen({
                 )}
                 <Avatar
                   name={other?.full_name ?? null}
-                  color={other?.avatar_color ?? colors.textMutedLight}
+                  color={other?.avatar_color ?? avatarFallbackColor}
                   size={44}
                 />
                 <View style={styles.cardTextCol}>

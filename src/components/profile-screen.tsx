@@ -15,7 +15,7 @@ import { SettingsRow } from "@/components/settings-row";
 import { ToggleActionButton } from "@/components/toggle-action-button";
 import { Spacing } from "@/constants/theme";
 import { Icon } from "@/components/icons";
-import { colors } from "@/theme/colors";
+import { avatarFallbackColor, colors } from "@/theme/colors";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -104,7 +104,7 @@ export function ProfileScreen({
         </Pressable>
         <Text style={styles.headerTitle}>Profil</Text>
         <View style={styles.headerSpacer} />
-        <Avatar name={profile?.full_name ?? null} color="#000000" shape="square" size={40} />
+        <Avatar name={profile?.full_name ?? null} color={profile?.avatar_color ?? avatarFallbackColor} shape="square" size={40} />
       </View>
       <View style={styles.headerDivider} />
 
@@ -116,7 +116,7 @@ export function ProfileScreen({
         )}
 
         <View style={styles.profileCard}>
-          <Avatar name={profile?.full_name ?? null} color="#000000" shape="square" size={56} />
+          <Avatar name={profile?.full_name ?? null} color={profile?.avatar_color ?? avatarFallbackColor} shape="square" size={56} />
           <View style={styles.profileInfo}>
             <Text style={styles.profileName} numberOfLines={1}>
               {profile?.full_name ?? "Unbekannt"}

@@ -1,5 +1,24 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
+import { avatarColors } from "@/theme/colors";
+
+/**
+ * Safety net for profiles whose stored color predates the current palette
+ * (e.g. the old orange): such colors are swapped for a stable palette color,
+ * so the app never shows an off-palette avatar. The stored value is untouched;
+ * supabase/avatar-colors.sql migrates it for good.
+ */
+function resolveAvatarColor(name: string | null, color: string): string {
+  const normalized = color?.toUpperCase();
+  const known = avatarColors.find((candidate) => candidate === normalized);
+  if (known) return known;
+
+  const seed = `${normalized}|${name ?? ""}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return avatarColors[hash % avatarColors.length];
+}
+
 function getInitials(name: string | null): string {
   if (!name || !name.trim()) return "?";
   const parts = name.trim().split(/\s+/);
@@ -36,7 +55,7 @@ export function Avatar({ name, color, size = 28, shape = "circle", status, style
           width: size,
           height: size,
           borderRadius: shape === "circle" ? size / 2 : size * 0.28,
-          backgroundColor: color,
+          backgroundColor: resolveAvatarColor(name, color),
         },
         style,
       ]}

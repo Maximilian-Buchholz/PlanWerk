@@ -25,7 +25,7 @@ import { ProjectCard } from "@/components/project-card";
 import { TaskCard } from "@/components/task-card";
 import { Spacing } from "@/constants/theme";
 import type { ProjectSummary } from "@/lib/tasks";
-import { colors } from "@/theme/colors";
+import { avatarFallbackColor, colors } from "@/theme/colors";
 import type { Profile, TaskWithRelations } from "@/types/tasks";
 
 if (
@@ -167,7 +167,7 @@ export function TasksOverviewScreen({
               >
                 <Avatar
                   name={currentUser?.full_name ?? username ?? null}
-                  color="#000000"
+                  color={currentUser?.avatar_color ?? avatarFallbackColor}
                   shape="square"
                   size={40}
                 />

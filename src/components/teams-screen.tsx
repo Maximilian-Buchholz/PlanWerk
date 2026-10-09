@@ -30,7 +30,7 @@ import { AvatarStack } from "@/components/avatar-stack";
 import { Spacing } from "@/constants/theme";
 import type { Team } from "@/lib/teams";
 import { Icon } from "@/components/icons";
-import { colors } from "@/theme/colors";
+import { avatarFallbackColor, colors } from "@/theme/colors";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -246,7 +246,7 @@ export function TeamsScreen({
             accessibilityRole="button"
             accessibilityLabel="Zum Profil"
           >
-            <Avatar name={currentUser?.full_name ?? null} color="#000000" shape="square" size={40} />
+            <Avatar name={currentUser?.full_name ?? null} color={currentUser?.avatar_color ?? avatarFallbackColor} shape="square" size={40} />
           </Pressable>
         </View>
         <View style={styles.headerDivider} />

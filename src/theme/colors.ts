@@ -54,15 +54,26 @@ export const colors = {
 export type ColorName = keyof typeof colors;
 
 /**
- * Palette for user avatar badges. Assigned per-user via
- * `profiles.avatar_color`; this array is only the set of choices offered
- * when a user picks/receives a color, not a lookup table.
+ * Palette for user avatar badges. The database assigns one to every new
+ * profile (see supabase/avatar-colors.sql, which must list the same values)
+ * and it never changes afterwards. All entries keep white initials readable
+ * (contrast of at least 4.5:1), so only darker tones belong here. Orange
+ * is reserved for the app's accent color and must not be used.
  */
 export const avatarColors = [
-  '#6249FF',
-  '#1A9D00',
-  '#E85A1A',
-  '#2C2C2C',
-  '#8E8D8F',
-  '#FF5252',
+  '#B3261E',
+  '#3F6212',
+  '#0369A1',
+  '#15803D',
+  '#0F766E',
+  '#0E7490',
+  '#1D4ED8',
+  '#4338CA',
+  '#6D28D9',
+  '#A21CAF',
+  '#BE185D',
+  '#475569',
 ] as const;
+
+/** Used when a profile has no color (e.g. a deleted user); also readable with white text. */
+export const avatarFallbackColor = '#475569';
