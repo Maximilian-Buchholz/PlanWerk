@@ -1,4 +1,3 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { DMMono_400Regular, DMMono_500Medium } from "@expo-google-fonts/dm-mono";
 import {
   DMSans_400Regular,
@@ -22,8 +21,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/avatar";
-import { PhaseBadge } from "@/components/phase-badge";
-import { PriorityBadge } from "@/components/priority-badge";
+import { AvatarStack } from "@/components/avatar-stack";
+import { DatePickerSheet } from "@/components/date-picker-sheet";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import type { Team } from "@/lib/teams";
@@ -32,7 +31,6 @@ import type { Phase, Priority, Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const PRIORITY_CYCLE: Priority[] = ["low", "medium", "high"];
 
 export type CreateTaskScreenProps = {
   project: { id: string; name: string; dueDate?: string | null };
@@ -104,8 +102,11 @@ export function CreateTaskScreen({
     initialValues?.assigneeIds ?? (currentUser ? [currentUser.id] : []),
   );
   const [showAssigneePicker, setShowAssigneePicker] = useState(false);
-  const [priority, setPriority] = useState<Priority>(initialValues?.priority ?? "medium");
+  // Priority is no longer editable here; it keeps its initial/existing value.
+  const [priority] = useState<Priority>(initialValues?.priority ?? "medium");
   const [phaseId, setPhaseId] = useState<string | null>(initialValues?.phaseId ?? phases[0]?.id ?? null);
+  // One shared font size for every phase chip, derived from the widest name that has to fit.
+  const [phaseRowWidth, setPhaseRowWidth] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -120,11 +121,20 @@ export function CreateTaskScreen({
   const projectDueDate = project.dueDate ? new Date(`${project.dueDate}T00:00:00`) : null;
   const exceedsProjectDueDate = Boolean(dueDate && projectDueDate && dueDate > projectDueDate);
   const canSubmit = title.trim().length > 0 && !exceedsProjectDueDate;
+  const longestPhaseName = phases.reduce((max, phase) => Math.max(max, phase.name.length), 1);
+  const phaseChipInnerWidth =
+    phases.length > 0
+      ? (phaseRowWidth - Spacing.two * (phases.length - 1)) / phases.length - Spacing.two
+      : 0;
+  // DM Mono is monospaced: a glyph is about 0.6em wide plus the 0.3 letter spacing.
+  const phaseFontSize =
+    phaseRowWidth > 0
+      ? Math.max(8, Math.min(12, Math.floor((phaseChipInnerWidth - 1) / (longestPhaseName * 0.6 + 0.3))))
+      : 11;
   const assignableProfiles = [...projectMembers, ...friends].filter(
     (profile, index, all) => all.findIndex((candidate) => candidate.id === profile.id) === index,
   );
   const assignedProfiles = assignableProfiles.filter((member) => assigneeIds.includes(member.id));
-  const currentPhase = phases.find((phase) => phase.id === phaseId) ?? null;
 
   function toggleTeam(team: Team) {
     const memberIds = team.members.map((member) => member.id);
@@ -136,33 +146,12 @@ export function CreateTaskScreen({
     );
   }
 
-  function cyclePhase() {
-    if (phases.length === 0) return;
-    const idx = phases.findIndex((phase) => phase.id === phaseId);
-    const next = phases[(idx + 1) % phases.length];
-    setPhaseId(next.id);
-  }
-
   function toggleAssignee(userId: string) {
     setAssigneeIds((current) =>
       current.includes(userId)
         ? current.filter((id) => id !== userId)
         : [...current, userId],
     );
-  }
-
-  function cyclePriority() {
-    const nextIndex = (PRIORITY_CYCLE.indexOf(priority) + 1) % PRIORITY_CYCLE.length;
-    setPriority(PRIORITY_CYCLE[nextIndex]);
-  }
-
-  function handleDateChange(event: { type: string }, selectedDate?: Date) {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
-    if (event.type === "set" && selectedDate) {
-      setDueDate(selectedDate);
-    }
   }
 
   async function handleSubmit() {
@@ -215,6 +204,11 @@ export function CreateTaskScreen({
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <View style={styles.card}>
+            <Text style={styles.fieldLabel}>PROJEKT</Text>
+            <Text style={styles.projectName}>{project.name}</Text>
+          </View>
+
           {loadError && (
             <Text style={styles.errorText} accessibilityRole="alert">
               {loadError}
@@ -283,11 +277,7 @@ export function CreateTaskScreen({
               <Text style={styles.fieldLabel}>ZUWEISEN</Text>
               <View style={styles.dueRow}>
                 {assignedProfiles.length > 0 ? (
-                  <Avatar
-                    name={assignedProfiles[0].full_name}
-                    color={assignedProfiles[0].avatar_color}
-                    size={26}
-                  />
+                  <AvatarStack profiles={assignedProfiles} size={26} max={2} />
                 ) : (
                   <Text style={styles.dueValue}>Niemand</Text>
                 )}
@@ -296,25 +286,51 @@ export function CreateTaskScreen({
             </Pressable>
           </View>
 
-          <Pressable
-            style={styles.card}
-            onPress={cyclePhase}
-            accessibilityRole="button"
-            accessibilityLabel={`Phase: ${currentPhase?.name ?? "unbekannt"}. Zum Ändern tippen.`}
-          >
+          <View style={styles.card}>
             <Text style={styles.fieldLabel}>PHASE</Text>
-            <PhaseBadge phaseName={currentPhase?.name} />
-          </Pressable>
+            <View
+              style={styles.phaseRow}
+              accessibilityRole="radiogroup"
+              onLayout={(event) => setPhaseRowWidth(event.nativeEvent.layout.width)}
+            >
+              {phases.map((phase) => {
+                const isSelected = phase.id === phaseId;
+                return (
+                  <Pressable
+                    key={phase.id}
+                    onPress={() => setPhaseId(phase.id)}
+                    style={[styles.phaseChip, isSelected && styles.phaseChipSelected]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={`Phase ${phase.name}`}
+                  >
+                    <Text
+                      style={[
+                        styles.phaseChipText,
+                        { fontSize: phaseFontSize },
+                        isSelected && styles.phaseChipTextSelected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {phase.name.toUpperCase()}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={dueDate ?? projectDueDate ?? new Date()}
-              mode="date"
-              maximumDate={projectDueDate ?? undefined}
-              onChange={handleDateChange}
-              accessibilityLabel="Fälligkeitsdatum"
-            />
-          )}
+          <DatePickerSheet
+            visible={showDatePicker}
+            value={dueDate ?? projectDueDate ?? new Date()}
+            maximumDate={projectDueDate ?? undefined}
+            accessibilityLabel="Fälligkeitsdatum"
+            onConfirm={(date) => {
+              setDueDate(date);
+              setShowDatePicker(false);
+            }}
+            onCancel={() => setShowDatePicker(false)}
+          />
 
           {exceedsProjectDueDate && (
             <Text style={styles.errorText} accessibilityRole="alert">
@@ -377,22 +393,6 @@ export function CreateTaskScreen({
               })}
             </View>
           )}
-
-          <View style={styles.card}>
-            <View style={styles.projectRow}>
-              <View>
-                <Text style={styles.fieldLabel}>PROJEKT</Text>
-                <Text style={styles.projectName}>{project.name}</Text>
-              </View>
-              <Pressable
-                onPress={cyclePriority}
-                accessibilityRole="button"
-                accessibilityLabel={`Priorität: ${priority}. Zum Ändern tippen.`}
-              >
-                <PriorityBadge priority={priority} />
-              </Pressable>
-            </View>
-          </View>
 
           <View style={[styles.card, styles.descriptionCard]}>
             <Text style={styles.fieldLabel}>BESCHREIBUNG</Text>
@@ -557,11 +557,6 @@ const styles = StyleSheet.create({
     color: colors.textMutedLight,
     marginTop: 4,
   },
-  projectRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   projectName: {
     fontFamily: "DMSans_600SemiBold",
     fontSize: 15,
@@ -584,6 +579,33 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: Spacing.two,
     marginBottom: Spacing.two,
+  },
+  phaseRow: {
+    flexDirection: "row",
+    gap: Spacing.two,
+  },
+  phaseChip: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.one,
+    borderRadius: 10,
+    // Transparent until selected, so choosing a phase doesn't shift the layout.
+    borderWidth: 1.5,
+    borderColor: "transparent",
+    backgroundColor: colors.warmCream,
+  },
+  phaseChipSelected: {
+    borderColor: colors.brandOrange,
+  },
+  phaseChipText: {
+    fontFamily: "DMMono_500Medium",
+    letterSpacing: 0.3,
+    color: colors.textMuted,
+  },
+  phaseChipTextSelected: {
+    color: colors.ink,
   },
   teamChip: {
     backgroundColor: colors.warmCream,

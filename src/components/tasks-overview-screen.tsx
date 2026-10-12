@@ -40,6 +40,14 @@ if (
 // the pattern used on the other screens.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+/** Time-of-day greeting: morning 05–11, midday 11–17, evening (and night) 17–05. */
+function getGreeting(now: Date = new Date()): string {
+  const hour = now.getHours();
+  if (hour >= 5 && hour < 11) return "Guten Morgen";
+  if (hour >= 11 && hour < 17) return "Guten Mittag";
+  return "Guten Abend";
+}
+
 export type TasksOverviewScreenProps = {
   username?: string;
   currentUser?: Profile;
@@ -59,6 +67,7 @@ export type TasksOverviewScreenProps = {
   onToggleDone?: (taskId: string) => void;
   onDeleteTask?: (taskId: string) => void;
   onEditTask?: (taskId: string) => void;
+  onOpenThread?: (taskId: string) => void;
 };
 
 function defaultDateLabel(): string {
@@ -90,6 +99,7 @@ export function TasksOverviewScreen({
   onToggleDone,
   onDeleteTask,
   onEditTask,
+  onOpenThread,
 }: TasksOverviewScreenProps) {
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
@@ -156,7 +166,7 @@ export function TasksOverviewScreen({
               <View style={styles.headerText}>
                 <Text style={styles.dateLabel}>{dateLabel ?? defaultDateLabel()}</Text>
                 <Text style={styles.greeting}>
-                  Guten Morgen, {username ?? "Nutzer"}.
+                  {getGreeting()}, {username ?? "Nutzer"}.
                 </Text>
               </View>
               <Pressable
@@ -205,6 +215,7 @@ export function TasksOverviewScreen({
               onToggleDone={(taskId) => onToggleDone?.(taskId)}
               onDelete={handleDelete}
               onEdit={onEditTask}
+              onOpenThread={onOpenThread}
             />
           ) : (
             <ProjectCard project={item as ProjectSummary} onPress={onOpenProject} />

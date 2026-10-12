@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AvatarStack } from "@/components/avatar-stack";
-import { PhaseBadge, phaseBadgeColors } from "@/components/phase-badge";
+import { phaseBadgeColors } from "@/components/phase-badge";
 import { Spacing } from "@/constants/theme";
 import { colors } from "@/theme/colors";
 import type { ProjectSummary } from "@/lib/tasks";
@@ -41,7 +41,6 @@ export function ProjectCard({ project, onPress }: ProjectCardProps) {
         <Text style={styles.name} numberOfLines={1}>
           {project.name}
         </Text>
-        <PhaseBadge phaseName={project.currentPhase?.name} />
       </View>
 
       {dueDate && (

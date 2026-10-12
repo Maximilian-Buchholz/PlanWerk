@@ -1,5 +1,6 @@
 import { notifyUsers } from "./friends";
 import { supabase } from "./supabase";
+import { logTaskActivity } from "./task-thread";
 import type { Phase, Priority, Profile, Project, TaskWithRelations } from "@/types/tasks";
 
 const DEFAULT_PHASE_NAMES = ["Briefing", "Planung", "Umsetzung", "Review", "Abschluss"];
@@ -23,6 +24,38 @@ async function ensureProjectMembers(projectId: string, userIds: string[]) {
     .from("project_members")
     .insert(missing.map((userId) => ({ project_id: projectId, user_id: userId, role: "member" })));
   if (error) throw error;
+}
+
+
+async function profileNames(ids: string[]): Promise<Map<string, string | null>> {
+  if (ids.length === 0) return new Map();
+  const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+  return new Map((data ?? []).map((row) => [row.id as string, row.full_name as string | null]));
+}
+
+async function phaseName(phaseId: string | null): Promise<string | null> {
+  if (!phaseId) return null;
+  const { data } = await supabase.from("phases").select("name").eq("id", phaseId).maybeSingle();
+  return data?.name ?? null;
+}
+
+/** Writes "X wurde hinzugefügt/entfernt" entries for the people whose assignment changed. */
+async function logAssigneeChanges(taskId: string, added: string[], removed: string[]) {
+  const names = await profileNames([...added, ...removed]);
+  for (const userId of added) {
+    await logTaskActivity({
+      taskId,
+      type: "assignee_added",
+      data: { userId, userName: names.get(userId) ?? null },
+    });
+  }
+  for (const userId of removed) {
+    await logTaskActivity({
+      taskId,
+      type: "assignee_removed",
+      data: { userId, userName: names.get(userId) ?? null },
+    });
+  }
 }
 
 /** Creates a new project, its 5 standard phases, and makes the creator its owner. */
@@ -233,6 +266,8 @@ export async function createTask(input: {
 
   if (error) throw error;
 
+  await logTaskActivity({ taskId: task.id, type: "task_created" });
+
   if (input.assigneeIds.length > 0) {
     await ensureProjectMembers(input.projectId, input.assigneeIds);
 
@@ -240,6 +275,7 @@ export async function createTask(input: {
       input.assigneeIds.map((userId) => ({ task_id: task.id, user_id: userId })),
     );
     if (assigneeError) throw assigneeError;
+    await logAssigneeChanges(task.id, input.assigneeIds, []);
 
     await notifyUsers({
       recipientIds: input.assigneeIds,
@@ -272,6 +308,8 @@ export async function updateTask(
     .eq("task_id", taskId);
   if (existingError) throw existingError;
   const previousAssigneeIds = new Set((existingAssignees ?? []).map((row) => row.user_id));
+  const { data: existingTask } = await supabase.from("tasks").select("phase_id").eq("id", taskId).maybeSingle();
+  const previousPhaseId: string | null = existingTask?.phase_id ?? null;
 
   const { error } = await supabase
     .from("tasks")
@@ -298,6 +336,15 @@ export async function updateTask(
   }
 
   const newlyAssigned = input.assigneeIds.filter((id) => !previousAssigneeIds.has(id));
+  const removedAssignees = [...previousAssigneeIds].filter((id) => !input.assigneeIds.includes(id));
+  await logAssigneeChanges(taskId, newlyAssigned, removedAssignees);
+  if (previousPhaseId !== input.phaseId) {
+    await logTaskActivity({
+      taskId,
+      type: "phase_changed",
+      data: { from: await phaseName(previousPhaseId), to: await phaseName(input.phaseId) },
+    });
+  }
   const stillAssigned = input.assigneeIds.filter((id) => previousAssigneeIds.has(id));
 
   if (newlyAssigned.length > 0) {
@@ -385,6 +432,19 @@ export async function fetchDashboardTasks(
 export async function setTaskDone(taskId: string, isDone: boolean) {
   const { error } = await supabase.from("tasks").update({ is_done: isDone }).eq("id", taskId);
   if (error) throw error;
+  await logTaskActivity({ taskId, type: isDone ? "marked_done" : "marked_open" });
+}
+
+/** Moves a task into another phase (a column of the board view). */
+export async function setTaskPhase(taskId: string, phaseId: string) {
+  const { data: existing } = await supabase.from("tasks").select("phase_id").eq("id", taskId).maybeSingle();
+  const { error } = await supabase.from("tasks").update({ phase_id: phaseId }).eq("id", taskId);
+  if (error) throw error;
+  await logTaskActivity({
+    taskId,
+    type: "phase_changed",
+    data: { from: await phaseName(existing?.phase_id ?? null), to: await phaseName(phaseId) },
+  });
 }
 
 export async function deleteTask(taskId: string) {

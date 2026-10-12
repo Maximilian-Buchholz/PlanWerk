@@ -33,6 +33,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/avatar";
 import { AvatarStack } from "@/components/avatar-stack";
+import { SegmentedToggle } from "@/components/segmented-toggle";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import type { Team } from "@/lib/teams";
@@ -109,6 +110,8 @@ export function TeamsScreen({
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const [teamError, setTeamError] = useState<string | null>(null);
 
+  // The "Freunde" tab is kept as tall as the "Team" tab so the sheet doesn't resize when switching.
+  const [teamContentHeight, setTeamContentHeight] = useState<number | null>(null);
   const [activeSheet, setActiveSheet] = useState<SheetKind>(null);
   const [renderedSheet, setRenderedSheet] = useState<SheetKind>(null);
   const [isModalMounted, setIsModalMounted] = useState(false);
@@ -270,17 +273,6 @@ export function TeamsScreen({
             </Text>
           )}
 
-          <View style={styles.actionRow}>
-            <Pressable
-              onPress={() => setActiveSheet("team")}
-              style={({ pressed }) => [styles.actionButton, pressed && styles.searchButtonPressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Team erstellen"
-            >
-              <Icon name="teams" size={28} color="#FFFFFF" />
-            </Pressable>
-          </View>
-
           {pendingSentRequests.length > 0 && (
             <>
               <Text style={styles.sectionLabel}>AUSSTEHEND</Text>
@@ -324,9 +316,11 @@ export function TeamsScreen({
             </View>
           )}
 
-          {ownedTeams.length > 0 && (
+          <Text style={styles.sectionLabel}>DEINE TEAMS</Text>
+          {ownedTeams.length === 0 ? (
+            <Text style={styles.emptyText}>Leer</Text>
+          ) : (
             <>
-              <Text style={styles.sectionLabel}>DEINE TEAMS</Text>
               <View style={styles.friendList}>
                 {ownedTeams.map((team) => (
                   <SwipeToRemoveCard
@@ -387,7 +381,7 @@ export function TeamsScreen({
         onPress={() => setActiveSheet("friend")}
         style={({ pressed }) => [styles.fab, pressed && styles.searchButtonPressed]}
         accessibilityRole="button"
-        accessibilityLabel="Freund hinzufügen"
+        accessibilityLabel="Freund hinzufügen oder Team erstellen"
       >
         <AddFriendGlyph />
       </Pressable>
@@ -407,10 +401,17 @@ export function TeamsScreen({
           <Pressable style={StyleSheet.absoluteFill} onPress={closeSheet} accessibilityLabel="Schließen" />
 
           <Animated.View style={[styles.modalSheet, { transform: [{ translateY: sheetTranslateY }] }]}>
-            {renderedSheet === "friend" ? (
-              <>
-                <Text style={styles.modalTitle}>Freund hinzufügen</Text>
+            <SegmentedToggle
+              options={[
+                { key: "friend", label: "Freunde", accessibilityLabel: "Freund hinzufügen" },
+                { key: "team", label: "Team", accessibilityLabel: "Team erstellen" },
+              ]}
+              value={renderedSheet === "team" ? "team" : "friend"}
+              onChange={(kind) => setActiveSheet(kind)}
+            />
 
+            {renderedSheet === "friend" ? (
+              <View style={{ minHeight: teamContentHeight ?? estimateTeamContentHeight(friends.length) }}>
                 <Text style={styles.fieldLabel}>E-MAIL</Text>
                 <View style={styles.searchRow}>
                   <TextInput
@@ -485,11 +486,9 @@ export function TeamsScreen({
                     )}
                   </View>
                 )}
-              </>
+              </View>
             ) : renderedSheet === "team" ? (
-              <>
-                <Text style={styles.modalTitle}>Team erstellen</Text>
-
+              <View onLayout={(event) => setTeamContentHeight(event.nativeEvent.layout.height)}>
                 <Text style={styles.fieldLabel}>NAME</Text>
                 <TextInput
                   style={styles.teamNameInput}
@@ -547,7 +546,7 @@ export function TeamsScreen({
                     <Text style={styles.createTeamButtonText}>TEAM ERSTELLEN ({teamMemberIds.length})</Text>
                   )}
                 </Pressable>
-              </>
+              </View>
             ) : null}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -689,6 +688,12 @@ function AddFriendGlyph() {
 }
 
 const CARD_RADIUS = 15;
+
+/** Rough height of the "Team" tab's content before it has been measured (toggle excluded). */
+function estimateTeamContentHeight(friendCount: number): number {
+  const memberList = Math.min(280, friendCount * 43 + 8);
+  return 21 + 36 + 37 + memberList + 65;
+}
 
 const styles = StyleSheet.create({
   flex: {
@@ -960,12 +965,6 @@ const styles = StyleSheet.create({
     paddingBottom: 160,
     maxHeight: "85%",
   },
-  modalTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-    marginBottom: Spacing.four,
-  },
   modalList: {
     backgroundColor: "#FFFFFF",
     borderRadius: CARD_RADIUS,
@@ -979,18 +978,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: Spacing.three,
-  },
-  actionRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
-  actionButton: {
-    flex: 1,
-    height: 56,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
   },
   fab: {
     position: "absolute",

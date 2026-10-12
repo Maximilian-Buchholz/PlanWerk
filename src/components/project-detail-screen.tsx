@@ -8,13 +8,21 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AvatarStack } from "@/components/avatar-stack";
+import { KanbanBoard } from "@/components/kanban-board";
+import { SegmentedToggle } from "@/components/segmented-toggle";
 import { TaskCard } from "@/components/task-card";
 import { Spacing } from "@/constants/theme";
 import { colors } from "@/theme/colors";
-import type { Profile, TaskWithRelations } from "@/types/tasks";
+import type { Phase, Profile, TaskWithRelations } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -31,6 +39,8 @@ export type ProjectDetailScreenProps = {
   project: { id: string; name: string; due_date: string | null };
   members: Profile[];
   tasks: TaskWithRelations[];
+  /** The project's phases — the columns of the board view. */
+  phases?: Phase[];
   /** Set when the project failed to load from Supabase. */
   loadError?: string | null;
   refreshing?: boolean;
@@ -38,7 +48,9 @@ export type ProjectDetailScreenProps = {
   onBack?: () => void;
   onCreateTask?: () => void;
   onEditTask?: (taskId: string) => void;
+  onOpenThread?: (taskId: string) => void;
   onToggleDone?: (taskId: string) => void;
+  onMoveTask?: (taskId: string, phaseId: string) => void;
   onDeleteTask?: (taskId: string) => void;
   onDeleteProject?: (projectId: string) => Promise<void> | void;
 };
@@ -47,13 +59,16 @@ export function ProjectDetailScreen({
   project,
   members,
   tasks,
+  phases = [],
   loadError,
   refreshing,
   onRefresh,
   onBack,
   onCreateTask,
   onEditTask,
+  onOpenThread,
   onToggleDone,
+  onMoveTask,
   onDeleteTask,
   onDeleteProject,
 }: ProjectDetailScreenProps) {
@@ -74,6 +89,25 @@ export function ProjectDetailScreen({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [localTasks, setLocalTasks] = useState<TaskWithRelations[]>(tasks);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [view, setView] = useState<"list" | "board">("list");
+
+  // 0 = list, 1 = board. Drives the toggle's sliding pill and the sideways slide of the two panes.
+  const viewProgress = useSharedValue(0);
+  const paneWidth = useSharedValue(0);
+  useEffect(() => {
+    viewProgress.value = withTiming(view === "board" ? 1 : 0, {
+      duration: 300,
+      easing: Easing.bezier(0.4, 0, 0.2, 1),
+    });
+  }, [view, viewProgress]);
+  const listPaneStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -viewProgress.value * paneWidth.value }],
+  }));
+  const boardPaneStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: (1 - viewProgress.value) * paneWidth.value }],
+    // Hidden until the pane width is known, otherwise the board would flash over the list.
+    opacity: paneWidth.value > 0 ? 1 : 0,
+  }));
 
   useEffect(() => {
     setLocalTasks(tasks);
@@ -129,17 +163,8 @@ export function ProjectDetailScreen({
 
   const formattedDueDate = formatDueDate(project.due_date);
 
-  return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <FlatList
-        data={localTasks}
-        keyExtractor={(task) => task.id}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} tintColor={colors.brandOrange} />
-        }
-        ListHeaderComponent={
-          <>
+  const header = (
+    <>
             <View style={styles.topRow}>
               <Pressable
                 onPress={onBack}
@@ -182,6 +207,37 @@ export function ProjectDetailScreen({
               </Text>
             )}
 
+
+      <SegmentedToggle
+        options={[
+          { key: "list", label: "Liste", accessibilityLabel: "Listenansicht" },
+          { key: "board", label: "Board", accessibilityLabel: "Board-Ansicht" },
+        ]}
+        value={view}
+        progress={viewProgress}
+        onChange={setView}
+      />
+    </>
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <View style={styles.boardHeader}>{header}</View>
+
+      <View style={styles.panes} onLayout={(event) => (paneWidth.value = event.nativeEvent.layout.width)}>
+        <Animated.View
+          style={[StyleSheet.absoluteFill, listPaneStyle]}
+          pointerEvents={view === "list" ? "auto" : "none"}
+        >
+          <FlatList
+        data={localTasks}
+        keyExtractor={(task) => task.id}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} tintColor={colors.brandOrange} />
+        }
+        ListHeaderComponent={
+          <>
             <View style={styles.tasksSectionRow}>
               <Text style={styles.sectionLabel}>TASKS</Text>
               <Text style={styles.tasksSectionCount}>
@@ -202,10 +258,25 @@ export function ProjectDetailScreen({
             onToggleDone={(taskId) => onToggleDone?.(taskId)}
             onDelete={handleDelete}
             onEdit={onEditTask}
+            onOpenThread={onOpenThread}
           />
         )}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.two }} />}
       />
+        </Animated.View>
+
+        <Animated.View
+          style={[StyleSheet.absoluteFill, boardPaneStyle]}
+          pointerEvents={view === "board" ? "auto" : "none"}
+        >
+          <KanbanBoard
+            phases={phases}
+            tasks={localTasks}
+            onMoveTask={(taskId, phaseId) => onMoveTask?.(taskId, phaseId)}
+            onEditTask={onEditTask}
+          />
+        </Animated.View>
+      </View>
 
       <Pressable
         onPress={onCreateTask}
@@ -232,6 +303,14 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.warmCream,
+  },
+  boardHeader: {
+    paddingHorizontal: 18,
+    paddingTop: Spacing.two,
+  },
+  panes: {
+    flex: 1,
+    overflow: "hidden",
   },
   listContent: {
     paddingHorizontal: 18,

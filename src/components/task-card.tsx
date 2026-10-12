@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { AvatarStack } from "@/components/avatar-stack";
-import { PhaseProgressBar } from "@/components/phase-progress-bar";
+import { PhaseLabels, PhaseProgressBar } from "@/components/phase-progress-bar";
 import { PriorityBadge } from "@/components/priority-badge";
 import { Icon } from "@/components/icons";
 import { colors } from "@/theme/colors";
@@ -46,13 +46,15 @@ export type TaskCardProps = {
   onToggleDone: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onEdit?: (taskId: string) => void;
+  /** Opens the comments & history window of the task (the pencil). */
+  onOpenThread?: (taskId: string) => void;
 };
 
 // Material-style standard curve: quick start, soft landing.
 const EXPAND_DURATION_MS = 300;
 const EXPAND_EASING = Easing.bezier(0.4, 0, 0.2, 1);
 
-export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDelete, onEdit }: TaskCardProps) {
+export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDelete, onEdit, onOpenThread }: TaskCardProps) {
   const swipeableRef = useRef<Swipeable>(null);
   const due = formatDueDate(task.due_date);
 
@@ -149,6 +151,11 @@ export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDel
               contentHeight.value = event.nativeEvent.layout.height;
             }}
           >
+            <PhaseLabels
+              phases={task.projectPhases}
+              currentPhaseId={task.phase_id}
+              isDone={task.is_done}
+            />
             <View style={styles.expandedFooter}>
               <AvatarStack profiles={task.assignees} />
 
@@ -157,12 +164,15 @@ export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDel
                   <CommentGlyph />
                   <Text style={styles.metaText}>{task.commentCount}</Text>
                 </View>
-                {/* TODO: Bearbeitungs-Historie ist noch kein Feature — Zahl ist
-                    Platzhalter, bis es eine echte Datenquelle dafür gibt. */}
-                <View style={styles.metaItem}>
+                <Pressable
+                  onPress={() => onOpenThread?.(task.id)}
+                  hitSlop={10}
+                  style={styles.metaItem}
+                  accessibilityRole="button"
+                  accessibilityLabel="Kommentare und Verlauf öffnen"
+                >
                   <PencilGlyph />
-                  <Text style={styles.metaText}>0</Text>
-                </View>
+                </Pressable>
               </View>
             </View>
           </View>

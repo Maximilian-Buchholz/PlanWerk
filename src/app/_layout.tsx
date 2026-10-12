@@ -34,6 +34,7 @@ function activeTabForPathname(pathname: string): TabKey | null {
   if (pathname === '/postfach') return 'postfach';
   if (pathname === '/calendar') return 'kalender';
   if (pathname === '/tasks/new-project') return null;
+  if (pathname === '/tasks/thread') return null;
   if (pathname === '/tasks' || pathname.startsWith('/tasks/')) return 'tasks';
   // Anything else (login, register, message compose, profile) has no tab bar.
   return null;
@@ -52,7 +53,14 @@ export default function RootLayout() {
       {/* The tab bar lives outside the Stack so it never slides along with
           screen transitions — only the content area above it animates. */}
       <View style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+            // No swipe-from-the-edge "back" — it fired too easily while swiping cards or scrolling the board.
+            gestureEnabled: false,
+          }}
+        >
           <Stack.Screen name="teams" options={tabScreenOptions} />
           <Stack.Screen name="postfach" options={tabScreenOptions} />
           <Stack.Screen name="calendar" options={tabScreenOptions} />

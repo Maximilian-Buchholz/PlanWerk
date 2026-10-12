@@ -3,7 +3,14 @@ import { useCallback, useState } from 'react';
 
 import { ProjectDetailScreen } from '@/components/project-detail-screen';
 import { getErrorMessage } from '@/lib/errors';
-import { deleteProject, deleteTask, fetchProjectWithTasks, setTaskDone, type ProjectWithTasks } from '@/lib/tasks';
+import {
+  deleteProject,
+  deleteTask,
+  fetchProjectWithTasks,
+  setTaskDone,
+  setTaskPhase,
+  type ProjectWithTasks,
+} from '@/lib/tasks';
 
 export default function ProjectDetailRoute() {
   const router = useRouter();
@@ -67,6 +74,30 @@ export default function ProjectDetailRoute() {
     }
   }
 
+  async function handleMoveTask(taskId: string, phaseId: string) {
+    if (!data) return;
+    const previous = data;
+    const phase = data.phases.find((candidate) => candidate.id === phaseId) ?? null;
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            tasks: current.tasks.map((task) =>
+              task.id === taskId ? { ...task, phase_id: phaseId, phase } : task,
+            ),
+          }
+        : current,
+    );
+
+    try {
+      await setTaskPhase(taskId, phaseId);
+    } catch (error) {
+      console.error("Task konnte nicht verschoben werden:", error);
+      setData(previous);
+      setLoadError(getErrorMessage(error, "Task konnte nicht verschoben werden."));
+    }
+  }
+
   async function handleDeleteTask(taskId: string) {
     if (!data) return;
     const previous = data;
@@ -90,13 +121,19 @@ export default function ProjectDetailRoute() {
       project={data.project}
       members={data.members}
       tasks={data.tasks}
+      phases={data.phases}
       loadError={loadError}
       refreshing={refreshing}
       onRefresh={handleRefresh}
       onBack={() => router.back()}
       onCreateTask={() => router.push({ pathname: '/tasks/create', params: { projectId } })}
       onEditTask={(taskId) => router.push({ pathname: '/tasks/create', params: { projectId, taskId } })}
+      onOpenThread={(taskId) => {
+        const task = data.tasks.find((candidate) => candidate.id === taskId);
+        router.push({ pathname: '/tasks/thread', params: { taskId, taskTitle: task?.title ?? '' } });
+      }}
       onToggleDone={handleToggleDone}
+      onMoveTask={handleMoveTask}
       onDeleteTask={handleDeleteTask}
       onDeleteProject={async (id) => {
         await deleteProject(id);

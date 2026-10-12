@@ -104,6 +104,10 @@ export default function TasksRoute() {
       onOpenProject={(projectId) => router.push(`/tasks/${projectId}`)}
       onToggleDone={handleToggleDone}
       onDeleteTask={handleDeleteTask}
+      onOpenThread={(taskId) => {
+        const task = tasks.find((candidate) => candidate.id === taskId);
+        router.push({ pathname: '/tasks/thread', params: { taskId, taskTitle: task?.title ?? '' } });
+      }}
       onEditTask={(taskId) => {
         const task = tasks.find((candidate) => candidate.id === taskId);
         if (!task?.project) return;

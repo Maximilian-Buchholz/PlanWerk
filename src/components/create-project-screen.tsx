@@ -1,4 +1,3 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { DMMono_400Regular, DMMono_500Medium } from "@expo-google-fonts/dm-mono";
 import {
   DMSans_400Regular,
@@ -20,6 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { DatePickerSheet } from "@/components/date-picker-sheet";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import { colors } from "@/theme/colors";
@@ -58,15 +58,6 @@ export function CreateProjectScreen({ onBack, onSubmit }: CreateProjectScreenPro
   }
 
   const canSubmit = name.trim().length > 0;
-
-  function handleDateChange(event: { type: string }, selectedDate?: Date) {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
-    if (event.type === "set" && selectedDate) {
-      setDueDate(selectedDate);
-    }
-  }
 
   async function handleSubmit() {
     if (!canSubmit || isSubmitting) return;
@@ -144,15 +135,17 @@ export function CreateProjectScreen({ onBack, onSubmit }: CreateProjectScreenPro
             </View>
           </Pressable>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={dueDate ?? new Date()}
-              mode="date"
-              minimumDate={new Date()}
-              onChange={handleDateChange}
-              accessibilityLabel="Abschlussdatum"
-            />
-          )}
+          <DatePickerSheet
+            visible={showDatePicker}
+            value={dueDate ?? new Date()}
+            minimumDate={new Date()}
+            accessibilityLabel="Abschlussdatum"
+            onConfirm={(date) => {
+              setDueDate(date);
+              setShowDatePicker(false);
+            }}
+            onCancel={() => setShowDatePicker(false)}
+          />
 
           {errorMessage && (
             <Text style={styles.errorText} accessibilityRole="alert">
