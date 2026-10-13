@@ -27,7 +27,9 @@ import { SegmentedToggle } from "@/components/segmented-toggle";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import type { ThreadActivity, ThreadComment, ThreadEntry } from "@/lib/task-thread";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -98,6 +100,8 @@ export function TaskThreadScreen({
   onSendComment,
   onToggleLike,
 }: TaskThreadScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -252,6 +256,8 @@ function CommentRow({
   entry: ThreadComment;
   onToggleLike?: (commentId: string, liked: boolean) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.commentCard}>
       <View style={styles.commentTop}>
@@ -288,6 +294,8 @@ function CommentRow({
 }
 
 function ActivityRow({ entry }: { entry: ThreadActivity }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.activityRow}>
       <Avatar
@@ -305,178 +313,179 @@ function ActivityRow({ entry }: { entry: ThreadActivity }) {
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerText: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  headerSubtitle: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  toggleWrap: {
-    paddingHorizontal: 19,
-    paddingTop: Spacing.three,
-  },
-  listContent: {
-    paddingHorizontal: 19,
-    paddingVertical: Spacing.two,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    textAlign: "center",
-    paddingHorizontal: 19,
-    paddingBottom: Spacing.two,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: "center",
-    paddingVertical: Spacing.five,
-  },
-  emptyTextFlipped: {
-    transform: [{ scaleY: -1 }],
-  },
-  commentCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  commentTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  commentHeadText: {
-    flex: 1,
-  },
-  authorName: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  timeText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 11,
-    color: colors.textMutedLight,
-  },
-  commentBody: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.ink,
-  },
-  likeButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  likeIcon: {
-    fontSize: 20,
-    color: colors.textMutedLight,
-  },
-  likeIconActive: {
-    color: colors.brandOrange,
-  },
-  likeCount: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  likeCountActive: {
-    color: colors.brandOrange,
-  },
-  activityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.one,
-  },
-  activityText: {
-    flex: 1,
-  },
-  activityMessage: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  composer: {
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.two,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    backgroundColor: colors.warmCream,
-  },
-  composerRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: Spacing.two,
-  },
-  composerInput: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    paddingHorizontal: Spacing.three,
-    paddingTop: 12,
-    paddingBottom: 12,
-    fontFamily: "DMSans_400Regular",
-    fontSize: 15,
-    color: colors.ink,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendButtonPressed: {
-    opacity: 0.85,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerText: {
+      flex: 1,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 18,
+      color: colors.ink,
+    },
+    headerSubtitle: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    toggleWrap: {
+      paddingHorizontal: 19,
+      paddingTop: Spacing.three,
+    },
+    listContent: {
+      paddingHorizontal: 19,
+      paddingVertical: Spacing.two,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      textAlign: "center",
+      paddingHorizontal: 19,
+      paddingBottom: Spacing.two,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: "center",
+      paddingVertical: Spacing.five,
+    },
+    emptyTextFlipped: {
+      transform: [{ scaleY: -1 }],
+    },
+    commentCard: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+      gap: Spacing.two,
+    },
+    commentTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    commentHeadText: {
+      flex: 1,
+    },
+    authorName: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 14,
+      color: colors.ink,
+    },
+    timeText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 11,
+      color: colors.textMutedLight,
+    },
+    commentBody: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.ink,
+    },
+    likeButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    likeIcon: {
+      fontSize: 20,
+      color: colors.textMutedLight,
+    },
+    likeIconActive: {
+      color: colors.brandOrange,
+    },
+    likeCount: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    likeCountActive: {
+      color: colors.brandOrange,
+    },
+    activityRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.one,
+    },
+    activityText: {
+      flex: 1,
+    },
+    activityMessage: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    composer: {
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      paddingBottom: Spacing.two,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+      backgroundColor: colors.warmCream,
+    },
+    composerRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: Spacing.two,
+    },
+    composerInput: {
+      flex: 1,
+      minHeight: 44,
+      maxHeight: 120,
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      paddingHorizontal: Spacing.three,
+      paddingTop: 12,
+      paddingBottom: 12,
+      fontFamily: "DMSans_400Regular",
+      fontSize: 15,
+      color: colors.ink,
+    },
+    sendButton: {
+      width: 44,
+      height: 44,
+      borderRadius: CARD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sendButtonPressed: {
+      opacity: 0.85,
+    },
+    sendButtonDisabled: {
+      opacity: 0.5,
+    },
+  });

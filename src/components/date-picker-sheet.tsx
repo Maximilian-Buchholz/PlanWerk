@@ -1,10 +1,11 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Animated, Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors, useTheme } from "@/theme/theme-context";
 
 export type DatePickerSheetProps = {
   visible: boolean;
@@ -36,6 +37,9 @@ export function DatePickerSheet({
   onConfirm,
   onCancel,
 }: DatePickerSheetProps) {
+  const { isDark } = useTheme();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [draft, setDraft] = useState(() => clamp(value, minimumDate, maximumDate));
 
   // Start from the current value each time the window opens.
@@ -103,7 +107,7 @@ export function DatePickerSheet({
             mode="date"
             display="spinner"
             locale="de-DE"
-            themeVariant="light"
+            themeVariant={isDark ? "dark" : "light"}
             minimumDate={minimumDate}
             maximumDate={maximumDate}
             onChange={(_event, selected) => {
@@ -118,38 +122,39 @@ export function DatePickerSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-  },
-  sheet: {
-    backgroundColor: colors.warmCream,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    paddingTop: Spacing.three,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 19,
-  },
-  cancelText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 16,
-    color: colors.textMuted,
-  },
-  confirmText: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 16,
-    color: colors.brandOrange,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    backdrop: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+    },
+    sheet: {
+      backgroundColor: colors.warmCream,
+      borderTopLeftRadius: 15,
+      borderTopRightRadius: 15,
+      paddingTop: Spacing.three,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 19,
+    },
+    cancelText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 16,
+      color: colors.textMuted,
+    },
+    confirmText: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 16,
+      color: colors.brandOrange,
+    },
+  });

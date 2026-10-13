@@ -1,5 +1,7 @@
 import Svg, { Path } from "react-native-svg";
 
+import { useColors } from "@/theme/theme-context";
+
 // Icons aus icons.svg. Jedes Icon behält seine Original-Pfade und zeigt per
 // viewBox nur seinen Ausschnitt des Sprites; die Farbe kommt über `color`.
 
@@ -30,7 +32,9 @@ const VIEW_BOX_SIZE = 46;
 const viewBox = (centerX: number, centerY: number, boxSize = VIEW_BOX_SIZE) =>
   `${centerX - boxSize / 2} ${centerY - boxSize / 2} ${boxSize} ${boxSize}`;
 
-export function Icon({ name, size = 24, color = "#2C2C2C" }: IconProps) {
+export function Icon({ name, size = 24, color }: IconProps) {
+  const themeColors = useColors();
+  color ??= themeColors.ink;
   const stroke = (width: number) => ({
     fill: "none",
     stroke: color,

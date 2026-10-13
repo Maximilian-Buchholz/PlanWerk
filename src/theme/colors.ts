@@ -2,11 +2,15 @@
  * Brand color constants shared across screens. Sourced from the Figma exports
  * "01 - Login" and "02 - Projektübersicht" / "04 - Postfach".
  */
-export const colors = {
+export const lightColors = {
   /** Signal color for buttons, links, FABs and active tab icons. */
   brandOrange: '#E85A1A',
   /** App background. */
   warmCream: '#F5F2EB',
+  /** Cards, sheets, inputs and other raised surfaces. */
+  surface: '#FFFFFF',
+  /** Text/icons on top of brandOrange or other saturated fills; identical in both themes. */
+  onBrand: '#FFFFFF',
   /** Primary text color. */
   ink: '#2C2C2C',
   /** Secondary text (dates, section labels, inactive icons). */
@@ -51,7 +55,53 @@ export const colors = {
   phaseNeutralBg: 'rgba(142, 141, 143, 0.14)',
 } as const;
 
-export type ColorName = keyof typeof colors;
+/** Semantic color set; every theme provides a value for each name. */
+export type Palette = { [K in keyof typeof lightColors]: string };
+export type ColorName = keyof Palette;
+
+export const darkColors: Palette = {
+  brandOrange: '#EE6422',
+  warmCream: '#151412',
+  surface: '#211F1D',
+  onBrand: '#FFFFFF',
+  ink: '#F2EFE9',
+  textMuted: '#9B9A9C',
+  textMutedLight: '#706F72',
+  borderLight: '#363330',
+
+  priorityHighText: '#FF6B6B',
+  priorityHighBg: 'rgba(255, 82, 82, 0.2)',
+  priorityMediumText: '#F2E45C',
+  priorityMediumBg: 'rgba(247, 255, 29, 0.15)',
+  priorityLowText: '#5BD143',
+  priorityLowBg: 'rgba(123, 255, 66, 0.15)',
+
+  phaseActive: '#EE6422',
+  phaseDone: '#2FA84A',
+  phaseUpcoming: '#3A3835',
+
+  phaseBriefingText: '#7BA4FF',
+  phaseBriefingBg: 'rgba(92, 140, 255, 0.2)',
+  phasePlanungText: '#9C8DFF',
+  phasePlanungBg: 'rgba(130, 110, 255, 0.2)',
+  phaseUmsetzungText: '#FF7F45',
+  phaseUmsetzungBg: 'rgba(255, 110, 50, 0.2)',
+  phaseReviewText: '#E3B336',
+  phaseReviewBg: 'rgba(247, 190, 29, 0.2)',
+  phaseAbschlussText: '#4CC463',
+  phaseAbschlussBg: 'rgba(60, 200, 80, 0.18)',
+  phaseNeutralText: '#9B9A9C',
+  phaseNeutralBg: 'rgba(155, 154, 156, 0.18)',
+};
+
+/** Light palette; kept under the old name for non-themed code. */
+export const colors: Palette = lightColors;
+
+/** `#RRGGBB` → `rgba(r, g, b, alpha)`. */
+export function withAlpha(hex: string, alpha: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
 
 /**
  * Palette for user avatar badges. The database assigns one to every new

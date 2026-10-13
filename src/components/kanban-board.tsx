@@ -13,7 +13,8 @@ import Animated, {
 import { AvatarStack } from "@/components/avatar-stack";
 import { formatDueDate } from "@/components/task-card";
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Phase, TaskWithRelations } from "@/types/tasks";
 
 const BOARD_PADDING = 18;
@@ -48,6 +49,8 @@ type DragContext = {
  * near the left/right edge scrolls the board.
  */
 export function KanbanBoard({ phases, tasks, onMoveTask, onEditTask }: KanbanBoardProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { width: windowWidth } = useWindowDimensions();
   const columnWidth = Math.min(300, windowWidth * 0.74);
   const columnStride = columnWidth + COLUMN_GAP;
@@ -226,6 +229,8 @@ function Column({
   dragContext: DragContext;
   onEditTask?: (taskId: string) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   // The column under the dragged card gets an orange outline.
   const highlight = useAnimatedStyle(() => ({
     borderColor: hoverIndex.value === index ? colors.brandOrange : "transparent",
@@ -270,6 +275,8 @@ function BoardCard({
   dragContext: DragContext;
   onPress: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { dragging, fingerX, fingerY, onStart, onDrop, onFinish } = dragContext;
 
   const taskId = task.id;
@@ -334,6 +341,8 @@ function BoardCard({
 }
 
 function CardContent({ task }: { task: TaskWithRelations }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const due = formatDueDate(task.due_date);
 
   return (
@@ -355,124 +364,125 @@ function CardContent({ task }: { task: TaskWithRelations }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  boardContent: {
-    paddingHorizontal: BOARD_PADDING,
-    paddingTop: Spacing.one,
-    gap: COLUMN_GAP,
-  },
-  column: {
-    backgroundColor: "rgba(44, 44, 44, 0.05)",
-    borderRadius: COLUMN_RADIUS,
-    borderWidth: 2,
-    borderColor: "transparent",
-    padding: Spacing.two,
-  },
-  columnHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.one,
-    paddingBottom: Spacing.two,
-  },
-  columnTitle: {
-    flex: 1,
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-  },
-  columnCount: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    color: colors.textMutedLight,
-  },
-  columnCards: {
-    gap: Spacing.two,
-    paddingBottom: 90,
-  },
-  emptyColumn: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMutedLight,
-    textAlign: "center",
-    paddingVertical: Spacing.three,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    paddingVertical: Spacing.three,
-    paddingLeft: Spacing.three,
-    paddingRight: Spacing.three,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  cardBody: {
-    flex: 1,
-  },
-  handle: {
-    width: 32,
-    height: 32,
-    marginRight: -Spacing.two,
-    marginTop: -Spacing.one,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  handleDots: {
-    width: 10,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 2,
-  },
-  handleDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.textMutedLight,
-  },
-  cardDragged: {
-    opacity: 0.35,
-  },
-  cardInner: {
-    gap: Spacing.one,
-  },
-  cardTitle: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  cardTitleDone: {
-    color: colors.textMutedLight,
-    textDecorationLine: "line-through",
-  },
-  cardDue: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  cardDueUrgent: {
-    color: colors.priorityHighText,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    marginTop: Spacing.one,
-  },
-  ghost: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+    },
+    boardContent: {
+      paddingHorizontal: BOARD_PADDING,
+      paddingTop: Spacing.one,
+      gap: COLUMN_GAP,
+    },
+    column: {
+      backgroundColor: withAlpha(colors.ink, 0.05),
+      borderRadius: COLUMN_RADIUS,
+      borderWidth: 2,
+      borderColor: "transparent",
+      padding: Spacing.two,
+    },
+    columnHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.one,
+      paddingBottom: Spacing.two,
+    },
+    columnTitle: {
+      flex: 1,
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+    },
+    columnCount: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      color: colors.textMutedLight,
+    },
+    columnCards: {
+      gap: Spacing.two,
+      paddingBottom: 90,
+    },
+    emptyColumn: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMutedLight,
+      textAlign: "center",
+      paddingVertical: Spacing.three,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      paddingVertical: Spacing.three,
+      paddingLeft: Spacing.three,
+      paddingRight: Spacing.three,
+    },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    cardBody: {
+      flex: 1,
+    },
+    handle: {
+      width: 32,
+      height: 32,
+      marginRight: -Spacing.two,
+      marginTop: -Spacing.one,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    handleDots: {
+      width: 10,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 2,
+    },
+    handleDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.textMutedLight,
+    },
+    cardDragged: {
+      opacity: 0.35,
+    },
+    cardInner: {
+      gap: Spacing.one,
+    },
+    cardTitle: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.ink,
+    },
+    cardTitleDone: {
+      color: colors.textMutedLight,
+      textDecorationLine: "line-through",
+    },
+    cardDue: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    cardDueUrgent: {
+      color: colors.priorityHighText,
+    },
+    cardFooter: {
+      flexDirection: "row",
+      marginTop: Spacing.one,
+    },
+    ghost: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.22,
+      shadowRadius: 12,
+      elevation: 10,
+    },
+  });

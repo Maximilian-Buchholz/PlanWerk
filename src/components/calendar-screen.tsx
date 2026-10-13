@@ -13,7 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/avatar";
 import { PriorityBadge } from "@/components/priority-badge";
 import { Spacing } from "@/constants/theme";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Priority, Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -98,6 +100,8 @@ export function CalendarScreen({
   onPressAvatar,
   onOpenProject,
 }: CalendarScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -277,162 +281,163 @@ export function CalendarScreen({
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: Spacing.four,
-    paddingBottom: 110,
-    gap: Spacing.three,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-  },
-  monthRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  monthNavButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  monthNavIcon: {
-    fontSize: 22,
-    color: colors.ink,
-  },
-  monthLabel: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-    textTransform: "capitalize",
-  },
-  calendarCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-  },
-  weekdayRow: {
-    flexDirection: "row",
-  },
-  weekdayLabel: {
-    flex: 1,
-    textAlign: "center",
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    letterSpacing: 0.5,
-    color: colors.textMutedLight,
-    marginBottom: Spacing.two,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  cell: {
-    width: `${100 / 7}%`,
-    alignItems: "center",
-    paddingVertical: 4,
-    gap: 3,
-  },
-  cellCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cellCircleSelected: {
-    backgroundColor: colors.brandOrange,
-  },
-  cellCircleToday: {
-    borderWidth: 1,
-    borderColor: colors.brandOrange,
-  },
-  cellText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.ink,
-  },
-  cellTextMuted: {
-    color: colors.textMutedLight,
-  },
-  cellTextSelected: {
-    color: "#FFFFFF",
-  },
-  cellDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "transparent",
-  },
-  cellDotVisible: {
-    backgroundColor: colors.brandOrange,
-  },
-  agendaLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginVertical: Spacing.two,
-  },
-  entryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  entryTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  entryTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 15,
-    color: colors.ink,
-  },
-  entrySubtitle: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMutedLight,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      color: colors.ink,
+    },
+    headerSpacer: {
+      flex: 1,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    scrollContent: {
+      paddingHorizontal: 18,
+      paddingTop: Spacing.four,
+      paddingBottom: 110,
+      gap: Spacing.three,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+    },
+    monthRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    monthNavButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    monthNavIcon: {
+      fontSize: 22,
+      color: colors.ink,
+    },
+    monthLabel: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 16,
+      color: colors.ink,
+      textTransform: "capitalize",
+    },
+    calendarCard: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+    },
+    weekdayRow: {
+      flexDirection: "row",
+    },
+    weekdayLabel: {
+      flex: 1,
+      textAlign: "center",
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      letterSpacing: 0.5,
+      color: colors.textMutedLight,
+      marginBottom: Spacing.two,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    cell: {
+      width: `${100 / 7}%`,
+      alignItems: "center",
+      paddingVertical: 4,
+      gap: 3,
+    },
+    cellCircle: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cellCircleSelected: {
+      backgroundColor: colors.brandOrange,
+    },
+    cellCircleToday: {
+      borderWidth: 1,
+      borderColor: colors.brandOrange,
+    },
+    cellText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.ink,
+    },
+    cellTextMuted: {
+      color: colors.textMutedLight,
+    },
+    cellTextSelected: {
+      color: "#FFFFFF",
+    },
+    cellDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: "transparent",
+    },
+    cellDotVisible: {
+      backgroundColor: colors.brandOrange,
+    },
+    agendaLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+    },
+    rowDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginVertical: Spacing.two,
+    },
+    entryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    entryTextCol: {
+      flex: 1,
+      gap: 2,
+    },
+    entryTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 15,
+      color: colors.ink,
+    },
+    entrySubtitle: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMutedLight,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+  });

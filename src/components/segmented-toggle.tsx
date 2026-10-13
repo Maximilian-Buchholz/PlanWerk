@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -9,7 +9,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 const PADDING = 3;
 
@@ -37,6 +38,8 @@ export function SegmentedToggle<Key extends string>({
   onChange,
   progress,
 }: SegmentedToggleProps<Key>) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const ownProgress = useSharedValue(options.findIndex((option) => option.key === value));
   const position = progress ?? ownProgress;
   const [trackWidth, setTrackWidth] = useState(0);
@@ -80,36 +83,37 @@ export function SegmentedToggle<Key extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    flexDirection: "row",
-    backgroundColor: "rgba(44, 44, 44, 0.06)",
-    borderRadius: 12,
-    padding: PADDING,
-    marginBottom: Spacing.three,
-  },
-  pill: {
-    position: "absolute",
-    top: PADDING,
-    bottom: PADDING,
-    left: PADDING,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-  },
-  option: {
-    flex: 1,
-    height: 34,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  textActive: {
-    fontFamily: "DMSans_600SemiBold",
-    color: colors.ink,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    track: {
+      flexDirection: "row",
+      backgroundColor: withAlpha(colors.ink, 0.06),
+      borderRadius: 12,
+      padding: PADDING,
+      marginBottom: Spacing.three,
+    },
+    pill: {
+      position: "absolute",
+      top: PADDING,
+      bottom: PADDING,
+      left: PADDING,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+    },
+    option: {
+      flex: 1,
+      height: 34,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    text: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    textActive: {
+      fontFamily: "DMSans_600SemiBold",
+      color: colors.ink,
+    },
+  });

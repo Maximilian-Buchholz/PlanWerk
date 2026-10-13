@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -38,7 +38,9 @@ import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import type { Team } from "@/lib/teams";
 import { Icon } from "@/components/icons";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -84,6 +86,8 @@ export function TeamsScreen({
   onRemoveFriend,
   onPressAvatar,
 }: TeamsScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -555,10 +559,12 @@ export function TeamsScreen({
   );
 }
 
-function TrashGlyph({ color = colors.priorityHighText }: { color?: string }) {
+function TrashGlyph({ color }: { color?: string }) {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.trash}>
-      <View style={[glyphStyles.trashLid, { backgroundColor: color }]} />
+      <View style={[glyphStyles.trashLid, { backgroundColor: color ?? colors.priorityHighText }]} />
       <View style={[glyphStyles.trashBody, { borderColor: color }]} />
     </View>
   );
@@ -591,6 +597,8 @@ function SwipeToRemoveCard({
   removeLabel: string;
   onRemove: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const swipeRef = useRef<SwipeableMethods>(null);
   const swipeX = useSharedValue(0);
   const counterSlide = useAnimatedStyle(() => ({
@@ -639,6 +647,8 @@ function FriendCard({
   onMessage: () => void;
   onRemove: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <SwipeToRemoveCard
       removeLabel={`${friend.full_name ?? "Unbekannt"} als Freund entfernen`}
@@ -677,6 +687,8 @@ function FriendCard({
 }
 
 function AddFriendGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.addFriend}>
       <View style={glyphStyles.addFriendHead} />
@@ -695,376 +707,378 @@ function estimateTeamContentHeight(friendCount: number): number {
   return 21 + 36 + 37 + memberList + 65;
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  scrollContent: {
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    paddingBottom: Spacing.six,
-    gap: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: -Spacing.two,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  fieldLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 10,
-    letterSpacing: 0.5,
-    color: colors.textMutedLight,
-    marginBottom: Spacing.two,
-  },
-  searchRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-    alignItems: "center",
-    paddingBottom: Spacing.three,
-  },
-  emailInput: {
-    flex: 1,
-    fontFamily: "DMSans_500Medium",
-    fontSize: 15,
-    color: colors.ink,
-    padding: 0,
-  },
-  searchButton: {
-    height: 36,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 10,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchButtonPressed: {
-    opacity: 0.85,
-  },
-  searchButtonDisabled: {
-    opacity: 0.5,
-  },
-  searchButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: "#FFFFFF",
-  },
-  searchErrorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    marginBottom: Spacing.three,
-  },
-  foundRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-    marginTop: Spacing.one,
-    paddingTop: Spacing.three,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-  },
-  foundName: {
-    flex: 1,
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  addButton: {
-    backgroundColor: "rgba(232, 90, 26, 0.12)",
-    borderRadius: 10,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  addButtonText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.brandOrange,
-  },
-  sentLabel: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  friendList: {
-    gap: Spacing.two,
-  },
-  friendRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  friendDeleteAction: {
-    backgroundColor: colors.priorityHighText,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 72,
-    borderRadius: CARD_RADIUS,
-    marginLeft: Spacing.two,
-  },
-  friendClip: {
-    borderRadius: CARD_RADIUS,
-    overflow: "hidden",
-  },
-  friendIdentity: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  friendInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  statusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  statusText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  friendName: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  messageButton: {
-    width: 30,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pendingLabel: {
-    fontFamily: "DMMono_400Regular",
-    fontSize: 11,
-    letterSpacing: 0.3,
-    color: colors.textMutedLight,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginVertical: Spacing.two,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-  },
-  teamRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-    paddingVertical: Spacing.one,
-  },
-  teamTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  teamMemberCount: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMutedLight,
-  },
-  teamNameInput: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 15,
-    color: colors.ink,
-    padding: 0,
-    paddingBottom: Spacing.three,
-  },
-  teamMembersLabel: {
-    marginTop: Spacing.three,
-  },
-  memberPickRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-    paddingVertical: Spacing.two,
-  },
-  memberCheck: {
-    color: colors.brandOrange,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  modalRoot: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  modalBackdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-  },
-  modalSheet: {
-    backgroundColor: colors.warmCream,
-    borderTopLeftRadius: CARD_RADIUS,
-    borderTopRightRadius: CARD_RADIUS,
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    // Generous bottom padding lifts the sheet's content well above the screen edge.
-    paddingBottom: 160,
-    maxHeight: "85%",
-  },
-  modalList: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    paddingHorizontal: Spacing.three,
-    maxHeight: 280,
-  },
-  modalConfirmButton: {
-    height: 49,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: Spacing.three,
-  },
-  fab: {
-    position: "absolute",
-    right: 19,
-    bottom: Spacing.three,
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  createTeamButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 13,
-    letterSpacing: 0.5,
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      color: colors.ink,
+    },
+    headerSpacer: {
+      flex: 1,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    scrollContent: {
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      paddingBottom: Spacing.six,
+      gap: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: -Spacing.two,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+      gap: Spacing.two,
+    },
+    fieldLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 10,
+      letterSpacing: 0.5,
+      color: colors.textMutedLight,
+      marginBottom: Spacing.two,
+    },
+    searchRow: {
+      flexDirection: "row",
+      gap: Spacing.two,
+      alignItems: "center",
+      paddingBottom: Spacing.three,
+    },
+    emailInput: {
+      flex: 1,
+      fontFamily: "DMSans_500Medium",
+      fontSize: 15,
+      color: colors.ink,
+      padding: 0,
+    },
+    searchButton: {
+      height: 36,
+      paddingHorizontal: Spacing.three,
+      borderRadius: 10,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    searchButtonPressed: {
+      opacity: 0.85,
+    },
+    searchButtonDisabled: {
+      opacity: 0.5,
+    },
+    searchButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: "#FFFFFF",
+    },
+    searchErrorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      marginBottom: Spacing.three,
+    },
+    foundRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+      marginTop: Spacing.one,
+      paddingTop: Spacing.three,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+    },
+    foundName: {
+      flex: 1,
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.ink,
+    },
+    addButton: {
+      backgroundColor: withAlpha(colors.brandOrange, 0.12),
+      borderRadius: 10,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.two,
+    },
+    addButtonText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.brandOrange,
+    },
+    sentLabel: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    friendList: {
+      gap: Spacing.two,
+    },
+    friendRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    friendDeleteAction: {
+      backgroundColor: colors.priorityHighText,
+      justifyContent: "center",
+      alignItems: "center",
+      width: 72,
+      borderRadius: CARD_RADIUS,
+      marginLeft: Spacing.two,
+    },
+    friendClip: {
+      borderRadius: CARD_RADIUS,
+      overflow: "hidden",
+    },
+    friendIdentity: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    friendInfo: {
+      flex: 1,
+      gap: 2,
+    },
+    statusRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.two,
+    },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    statusText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    friendName: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.ink,
+    },
+    messageButton: {
+      width: 30,
+      height: 30,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    pendingLabel: {
+      fontFamily: "DMMono_400Regular",
+      fontSize: 11,
+      letterSpacing: 0.3,
+      color: colors.textMutedLight,
+    },
+    rowDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginVertical: Spacing.two,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+    },
+    teamRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+      paddingVertical: Spacing.one,
+    },
+    teamTextCol: {
+      flex: 1,
+      gap: 2,
+    },
+    teamMemberCount: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMutedLight,
+    },
+    teamNameInput: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 15,
+      color: colors.ink,
+      padding: 0,
+      paddingBottom: Spacing.three,
+    },
+    teamMembersLabel: {
+      marginTop: Spacing.three,
+    },
+    memberPickRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+      paddingVertical: Spacing.two,
+    },
+    memberCheck: {
+      color: colors.brandOrange,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    modalRoot: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    modalBackdrop: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+    },
+    modalSheet: {
+      backgroundColor: colors.warmCream,
+      borderTopLeftRadius: CARD_RADIUS,
+      borderTopRightRadius: CARD_RADIUS,
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      // Generous bottom padding lifts the sheet's content well above the screen edge.
+      paddingBottom: 160,
+      maxHeight: "85%",
+    },
+    modalList: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      paddingHorizontal: Spacing.three,
+      maxHeight: 280,
+    },
+    modalConfirmButton: {
+      height: 49,
+      borderRadius: CARD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: Spacing.three,
+    },
+    fab: {
+      position: "absolute",
+      right: 19,
+      bottom: Spacing.three,
+      width: 50,
+      height: 50,
+      borderRadius: 15,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    createTeamButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 13,
+      letterSpacing: 0.5,
+      color: "#FFFFFF",
+    },
+  });
 
-const glyphStyles = StyleSheet.create({
-  trash: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-  },
-  trashLid: {
-    width: 14,
-    height: 2,
-    backgroundColor: colors.priorityHighText,
-    borderRadius: 1,
-  },
-  trashBody: {
-    width: 12,
-    height: 13,
-    marginTop: 1,
-    borderWidth: 1.6,
-    borderColor: colors.priorityHighText,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-  },
-  addFriend: {
-    width: 24,
-    height: 22,
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  addFriendHead: {
-    position: "absolute",
-    top: 0,
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    borderWidth: 1.8,
-    borderColor: "#FFFFFF",
-  },
-  addFriendBody: {
-    width: 15,
-    height: 9,
-    borderTopLeftRadius: 7.5,
-    borderTopRightRadius: 7.5,
-    borderWidth: 1.8,
-    borderColor: "#FFFFFF",
-    borderBottomWidth: 0,
-  },
-  addFriendPlusH: {
-    position: "absolute",
-    right: -1,
-    top: 2,
-    width: 9,
-    height: 1.8,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 1,
-  },
-  addFriendPlusV: {
-    position: "absolute",
-    right: 3,
-    top: -2,
-    width: 1.8,
-    height: 9,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 1,
-  },
-});
+const makeGlyphStyles = (colors: Palette) =>
+  StyleSheet.create({
+    trash: {
+      width: 20,
+      height: 20,
+      alignItems: "center",
+    },
+    trashLid: {
+      width: 14,
+      height: 2,
+      backgroundColor: colors.priorityHighText,
+      borderRadius: 1,
+    },
+    trashBody: {
+      width: 12,
+      height: 13,
+      marginTop: 1,
+      borderWidth: 1.6,
+      borderColor: colors.priorityHighText,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 3,
+      borderBottomRightRadius: 3,
+    },
+    addFriend: {
+      width: 24,
+      height: 22,
+      alignItems: "center",
+      justifyContent: "flex-end",
+    },
+    addFriendHead: {
+      position: "absolute",
+      top: 0,
+      width: 9,
+      height: 9,
+      borderRadius: 4.5,
+      borderWidth: 1.8,
+      borderColor: "#FFFFFF",
+    },
+    addFriendBody: {
+      width: 15,
+      height: 9,
+      borderTopLeftRadius: 7.5,
+      borderTopRightRadius: 7.5,
+      borderWidth: 1.8,
+      borderColor: "#FFFFFF",
+      borderBottomWidth: 0,
+    },
+    addFriendPlusH: {
+      position: "absolute",
+      right: -1,
+      top: 2,
+      width: 9,
+      height: 1.8,
+      backgroundColor: colors.surface,
+      borderRadius: 1,
+    },
+    addFriendPlusV: {
+      position: "absolute",
+      right: 3,
+      top: -2,
+      width: 1.8,
+      height: 9,
+      backgroundColor: colors.surface,
+      borderRadius: 1,
+    },
+  });

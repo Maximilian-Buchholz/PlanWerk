@@ -21,7 +21,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 // The root layout already hides the native splash screen on first paint (see
 // `AnimatedSplashOverlay`). This call is a defensive no-op guard so this
@@ -61,6 +62,8 @@ export type RegisterScreenProps = {
 };
 
 export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -165,7 +168,7 @@ export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
               value={name}
               onChangeText={setName}
               placeholder="Max Buchholz"
-              placeholderTextColor={mutedInk(0.4)}
+              placeholderTextColor={mutedInk(colors, 0.4)}
               autoCapitalize="words"
               autoComplete="name"
               textContentType="name"
@@ -180,7 +183,7 @@ export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
               value={email}
               onChangeText={setEmail}
               placeholder="max@buchholz.de"
-              placeholderTextColor={mutedInk(0.4)}
+              placeholderTextColor={mutedInk(colors, 0.4)}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -197,7 +200,7 @@ export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="••••••••"
-                placeholderTextColor={mutedInk(0.4)}
+                placeholderTextColor={mutedInk(colors, 0.4)}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
@@ -229,7 +232,7 @@ export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="••••••••"
-                placeholderTextColor={mutedInk(0.4)}
+                placeholderTextColor={mutedInk(colors, 0.4)}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
@@ -328,173 +331,174 @@ export function RegisterScreen({ onSubmit, onLogin }: RegisterScreenProps) {
   );
 }
 
-function mutedInk(opacity: number) {
-  return `rgba(44, 44, 44, ${opacity})`;
+function mutedInk(colors: Palette, opacity: number) {
+  return withAlpha(colors.ink, opacity);
 }
 
 const FIELD_RADIUS = 7;
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 46,
-    paddingTop: Spacing.one,
-    paddingBottom: Spacing.five,
-  },
-  backButton: {
-    position: "absolute",
-    top: Spacing.one,
-    left: 46,
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  backButtonIcon: {
-    fontSize: 30,
-    lineHeight: 30,
-    color: colors.ink,
-  },
-  logoPlaceholder: {
-    alignSelf: "center",
-    width: 175,
-    height: 90,
-    marginBottom: Spacing.three,
-  },
-  heading: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    lineHeight: 28,
-    color: colors.ink,
-    marginBottom: Spacing.five,
-  },
-  fieldGroup: {
-    marginBottom: Spacing.five,
-  },
-  passwordFieldGroup: {
-    marginBottom: Spacing.two,
-  },
-  label: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: mutedInk(0.55),
-    marginBottom: Spacing.two,
-  },
-  input: {
-    height: 49,
-    borderRadius: FIELD_RADIUS,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: Spacing.three,
-    fontFamily: "DMSans_400Regular",
-    fontSize: 16,
-    color: colors.ink,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  passwordFieldWrapper: {
-    justifyContent: "center",
-  },
-  passwordInput: {
-    paddingRight: 92,
-  },
-  showPasswordToggle: {
-    position: "absolute",
-    right: Spacing.three,
-  },
-  showPasswordToggleText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    letterSpacing: 0.5,
-    color: colors.brandOrange,
-  },
-  requirementsList: {
-    marginBottom: Spacing.four,
-    gap: 4,
-  },
-  requirementRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  requirementMark: {
-    fontSize: 12,
-    width: 14,
-    textAlign: "center",
-  },
-  requirementMarkMet: {
-    color: colors.ink,
-  },
-  requirementMarkUnmet: {
-    color: mutedInk(0.35),
-  },
-  requirementLabel: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-  },
-  requirementLabelMet: {
-    color: colors.ink,
-  },
-  requirementLabelUnmet: {
-    color: mutedInk(0.45),
-  },
-  passwordMismatchText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.brandOrange,
-    marginTop: Spacing.two,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.brandOrange,
-    textAlign: "center",
-    marginBottom: Spacing.three,
-  },
-  primaryButton: {
-    height: 49,
-    borderRadius: FIELD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.four,
-  },
-  primaryButtonPressed: {
-    opacity: 0.85,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.5,
-  },
-  primaryButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 14,
-    letterSpacing: 1,
-    color: "#FFFFFF",
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  footerText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    color: mutedInk(0.6),
-  },
-  footerLink: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.brandOrange,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 46,
+      paddingTop: Spacing.one,
+      paddingBottom: Spacing.five,
+    },
+    backButton: {
+      position: "absolute",
+      top: Spacing.one,
+      left: 46,
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1,
+    },
+    backButtonIcon: {
+      fontSize: 30,
+      lineHeight: 30,
+      color: colors.ink,
+    },
+    logoPlaceholder: {
+      alignSelf: "center",
+      width: 175,
+      height: 90,
+      marginBottom: Spacing.three,
+    },
+    heading: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      lineHeight: 28,
+      color: colors.ink,
+      marginBottom: Spacing.five,
+    },
+    fieldGroup: {
+      marginBottom: Spacing.five,
+    },
+    passwordFieldGroup: {
+      marginBottom: Spacing.two,
+    },
+    label: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: mutedInk(colors, 0.55),
+      marginBottom: Spacing.two,
+    },
+    input: {
+      height: 49,
+      borderRadius: FIELD_RADIUS,
+      backgroundColor: colors.surface,
+      paddingHorizontal: Spacing.three,
+      fontFamily: "DMSans_400Regular",
+      fontSize: 16,
+      color: colors.ink,
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    passwordFieldWrapper: {
+      justifyContent: "center",
+    },
+    passwordInput: {
+      paddingRight: 92,
+    },
+    showPasswordToggle: {
+      position: "absolute",
+      right: Spacing.three,
+    },
+    showPasswordToggleText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      letterSpacing: 0.5,
+      color: colors.brandOrange,
+    },
+    requirementsList: {
+      marginBottom: Spacing.four,
+      gap: 4,
+    },
+    requirementRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    requirementMark: {
+      fontSize: 12,
+      width: 14,
+      textAlign: "center",
+    },
+    requirementMarkMet: {
+      color: colors.ink,
+    },
+    requirementMarkUnmet: {
+      color: mutedInk(colors, 0.35),
+    },
+    requirementLabel: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+    },
+    requirementLabelMet: {
+      color: colors.ink,
+    },
+    requirementLabelUnmet: {
+      color: mutedInk(colors, 0.45),
+    },
+    passwordMismatchText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.brandOrange,
+      marginTop: Spacing.two,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.brandOrange,
+      textAlign: "center",
+      marginBottom: Spacing.three,
+    },
+    primaryButton: {
+      height: 49,
+      borderRadius: FIELD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.four,
+    },
+    primaryButtonPressed: {
+      opacity: 0.85,
+    },
+    primaryButtonDisabled: {
+      opacity: 0.5,
+    },
+    primaryButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 14,
+      letterSpacing: 1,
+      color: "#FFFFFF",
+    },
+    footerRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      flexWrap: "wrap",
+    },
+    footerText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      color: mutedInk(colors, 0.6),
+    },
+    footerLink: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.brandOrange,
+    },
+  });

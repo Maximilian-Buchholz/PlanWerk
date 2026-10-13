@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -29,7 +29,9 @@ import { Avatar } from "@/components/avatar";
 import { Icon } from "@/components/icons";
 import { Spacing } from "@/constants/theme";
 import type { AppNotification } from "@/lib/friends";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -111,6 +113,8 @@ export function InboxScreen({
   onBack,
   onPressAvatar,
 }: InboxScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -411,6 +415,8 @@ const BODY_LONG_TEXT_CHARS = 80;
 
 /** Message text clamped to two lines; long messages get an arrow that expands them like a task card. */
 function ExpandableBody({ text }: { text: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   // The ellipsis only works with numberOfLines, so it is dropped while expanded/animating.
   const [clamped, setClamped] = useState(true);
@@ -485,6 +491,8 @@ function ExpandableBody({ text }: { text: string }) {
 }
 
 function TrashGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.trash}>
       <View style={glyphStyles.trashLid} />
@@ -495,254 +503,256 @@ function TrashGlyph() {
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  deleteHeaderButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  filterRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-    paddingHorizontal: 19,
-    paddingTop: Spacing.three,
-  },
-  filterPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    paddingHorizontal: Spacing.three,
-    height: 34,
-  },
-  filterPillActive: {
-    backgroundColor: colors.brandOrange,
-  },
-  filterText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  filterTextActive: {
-    color: "#FFFFFF",
-  },
-  filterBadge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.warmCream,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 5,
-  },
-  filterBadgeActive: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-  },
-  filterBadgeText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  filterBadgeTextActive: {
-    color: "#FFFFFF",
-  },
-  listContent: {
-    paddingHorizontal: 18,
-    paddingTop: Spacing.four,
-    paddingBottom: 110,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: Spacing.two,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  cardUnread: {
-    borderWidth: 1,
-    borderColor: colors.brandOrange,
-  },
-  cardSelected: {
-    backgroundColor: "rgba(232, 90, 26, 0.08)",
-    borderWidth: 1,
-    borderColor: colors.brandOrange,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: "rgba(44, 44, 44, 0.3)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: colors.brandOrange,
-    borderColor: colors.brandOrange,
-  },
-  checkboxMark: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  cardTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  cardTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  senderName: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-  },
-  typeLabel: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMutedLight,
-  },
-  dateLabel: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 12,
-    color: colors.brandOrange,
-  },
-  bodyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    lineHeight: BODY_LINE_HEIGHT,
-    color: colors.ink,
-  },
-  bodyWrap: {
-    marginLeft: 44 + Spacing.two,
-  },
-  bodyClip: {
-    overflow: "hidden",
-  },
-  bodyMeasure: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    opacity: 0,
-  },
-  // The pull-back of -Spacing.two cancels half of the card's bottom padding, so the
-  // arrow sits evenly between the message and the card's bottom edge.
-  bodyChevronRow: {
-    alignItems: "center",
-    paddingTop: Spacing.two,
-    marginBottom: -Spacing.two,
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: Spacing.two,
-  },
-  declineButton: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
-  },
-  declineButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.3,
-    color: colors.textMuted,
-  },
-  acceptButton: {
-    backgroundColor: "rgba(232, 90, 26, 0.12)",
-    borderRadius: 10,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    minWidth: 96,
-    alignItems: "center",
-  },
-  acceptButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.3,
-    color: colors.brandOrange,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      color: colors.ink,
+    },
+    headerSpacer: {
+      flex: 1,
+    },
+    deleteHeaderButton: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    filterRow: {
+      flexDirection: "row",
+      gap: Spacing.two,
+      paddingHorizontal: 19,
+      paddingTop: Spacing.three,
+    },
+    filterPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      paddingHorizontal: Spacing.three,
+      height: 34,
+    },
+    filterPillActive: {
+      backgroundColor: colors.brandOrange,
+    },
+    filterText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    filterTextActive: {
+      color: "#FFFFFF",
+    },
+    filterBadge: {
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.warmCream,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 5,
+    },
+    filterBadgeActive: {
+      backgroundColor: "rgba(255,255,255,0.25)",
+    },
+    filterBadgeText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+    filterBadgeTextActive: {
+      color: "#FFFFFF",
+    },
+    listContent: {
+      paddingHorizontal: 18,
+      paddingTop: Spacing.four,
+      paddingBottom: 110,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: Spacing.two,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+      gap: Spacing.two,
+    },
+    cardUnread: {
+      borderWidth: 1,
+      borderColor: colors.brandOrange,
+    },
+    cardSelected: {
+      backgroundColor: withAlpha(colors.brandOrange, 0.08),
+      borderWidth: 1,
+      borderColor: colors.brandOrange,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 1,
+      borderColor: withAlpha(colors.ink, 0.3),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    checkboxChecked: {
+      backgroundColor: colors.brandOrange,
+      borderColor: colors.brandOrange,
+    },
+    checkboxMark: {
+      color: "#FFFFFF",
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    cardTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+    },
+    cardTextCol: {
+      flex: 1,
+      gap: 2,
+    },
+    senderName: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 16,
+      color: colors.ink,
+    },
+    typeLabel: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMutedLight,
+    },
+    dateLabel: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 12,
+      color: colors.brandOrange,
+    },
+    bodyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      lineHeight: BODY_LINE_HEIGHT,
+      color: colors.ink,
+    },
+    bodyWrap: {
+      marginLeft: 44 + Spacing.two,
+    },
+    bodyClip: {
+      overflow: "hidden",
+    },
+    bodyMeasure: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      opacity: 0,
+    },
+    // The pull-back of -Spacing.two cancels half of the card's bottom padding, so the
+    // arrow sits evenly between the message and the card's bottom edge.
+    bodyChevronRow: {
+      alignItems: "center",
+      paddingTop: Spacing.two,
+      marginBottom: -Spacing.two,
+    },
+    cardDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+    },
+    actionsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: Spacing.two,
+    },
+    declineButton: {
+      paddingVertical: Spacing.two,
+      paddingHorizontal: Spacing.two,
+    },
+    declineButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.3,
+      color: colors.textMuted,
+    },
+    acceptButton: {
+      backgroundColor: withAlpha(colors.brandOrange, 0.12),
+      borderRadius: 10,
+      paddingVertical: Spacing.two,
+      paddingHorizontal: Spacing.three,
+      minWidth: 96,
+      alignItems: "center",
+    },
+    acceptButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.3,
+      color: colors.brandOrange,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+    },
+  });
 
-const glyphStyles = StyleSheet.create({
-  trash: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-  },
-  trashLid: {
-    width: 14,
-    height: 2,
-    backgroundColor: colors.priorityHighText,
-    borderRadius: 1,
-  },
-  trashBody: {
-    width: 12,
-    height: 13,
-    marginTop: 1,
-    borderWidth: 1.6,
-    borderColor: colors.priorityHighText,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-  },
-});
+const makeGlyphStyles = (colors: Palette) =>
+  StyleSheet.create({
+    trash: {
+      width: 20,
+      height: 20,
+      alignItems: "center",
+    },
+    trashLid: {
+      width: 14,
+      height: 2,
+      backgroundColor: colors.priorityHighText,
+      borderRadius: 1,
+    },
+    trashBody: {
+      width: 12,
+      height: 13,
+      marginTop: 1,
+      borderWidth: 1.6,
+      borderColor: colors.priorityHighText,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 3,
+      borderBottomRightRadius: 3,
+    },
+  });

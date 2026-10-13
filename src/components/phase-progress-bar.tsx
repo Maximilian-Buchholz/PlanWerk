@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Phase } from "@/types/tasks";
 
 export type PhaseProgressBarProps = {
@@ -20,6 +22,8 @@ function isComplete(sorted: Phase[], currentIndex: number, isDone: boolean): boo
 }
 
 export function PhaseProgressBar({ phases, currentPhaseId, isDone }: PhaseProgressBarProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const sorted = [...phases].sort((a, b) => a.position - b.position);
   const currentIndex = sorted.findIndex((phase) => phase.id === currentPhaseId);
   const complete = isComplete(sorted, currentIndex, isDone);
@@ -49,6 +53,8 @@ export function PhaseProgressBar({ phases, currentPhaseId, isDone }: PhaseProgre
 
 /** Phase names, laid out in the same columns as the bar's segments. */
 export function PhaseLabels({ phases, currentPhaseId, isDone }: PhaseProgressBarProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const sorted = [...phases].sort((a, b) => a.position - b.position);
   const currentIndex = sorted.findIndex((phase) => phase.id === currentPhaseId);
   const complete = isComplete(sorted, currentIndex, isDone);
@@ -81,40 +87,41 @@ export function PhaseLabels({ phases, currentPhaseId, isDone }: PhaseProgressBar
 
 const SEGMENT_GAP = 4;
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-  },
-  segmentsRow: {
-    flexDirection: "row",
-    gap: SEGMENT_GAP,
-  },
-  segment: {
-    flex: 1,
-    height: 2,
-    borderRadius: 1,
-  },
-  segmentFilled: {
-    opacity: 1,
-  },
-  labelsRow: {
-    flexDirection: "row",
-    gap: SEGMENT_GAP,
-  },
-  label: {
-    flex: 1,
-    fontFamily: "DMSans_500Medium",
-    fontSize: 12,
-    textAlign: "center",
-    color: colors.textMutedLight,
-  },
-  labelActive: {
-    color: colors.phaseActive,
-  },
-  labelDone: {
-    color: colors.phaseDone,
-  },
-  labelCurrent: {
-    fontFamily: "DMSans_600SemiBold",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+    },
+    segmentsRow: {
+      flexDirection: "row",
+      gap: SEGMENT_GAP,
+    },
+    segment: {
+      flex: 1,
+      height: 2,
+      borderRadius: 1,
+    },
+    segmentFilled: {
+      opacity: 1,
+    },
+    labelsRow: {
+      flexDirection: "row",
+      gap: SEGMENT_GAP,
+    },
+    label: {
+      flex: 1,
+      fontFamily: "DMSans_500Medium",
+      fontSize: 12,
+      textAlign: "center",
+      color: colors.textMutedLight,
+    },
+    labelActive: {
+      color: colors.phaseActive,
+    },
+    labelDone: {
+      color: colors.phaseDone,
+    },
+    labelCurrent: {
+      fontFamily: "DMSans_600SemiBold",
+    },
+  });

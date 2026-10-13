@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,7 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/avatar";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -37,6 +38,8 @@ export type MessageScreenProps = {
 };
 
 export function MessageScreen({ recipient, onBack, onSend }: MessageScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -161,97 +164,98 @@ export function MessageScreen({ recipient, onBack, onSend }: MessageScreenProps)
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    flex: 1,
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: -Spacing.two,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    padding: Spacing.three,
-    minHeight: 160,
-  },
-  bodyInput: {
-    flex: 1,
-    fontFamily: "DMSans_400Regular",
-    fontSize: 15,
-    color: colors.ink,
-    padding: 0,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    textAlign: "center",
-  },
-  sendButton: {
-    height: 49,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.three,
-  },
-  sendButtonSent: {
-    backgroundColor: colors.phaseDone,
-  },
-  sendButtonPressed: {
-    opacity: 0.85,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  sendButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 14,
-    letterSpacing: 1,
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      flex: 1,
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 18,
+      color: colors.ink,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      gap: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: -Spacing.two,
+    },
+    card: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      padding: Spacing.three,
+      minHeight: 160,
+    },
+    bodyInput: {
+      flex: 1,
+      fontFamily: "DMSans_400Regular",
+      fontSize: 15,
+      color: colors.ink,
+      padding: 0,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      textAlign: "center",
+    },
+    sendButton: {
+      height: 49,
+      borderRadius: CARD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.three,
+    },
+    sendButtonSent: {
+      backgroundColor: colors.phaseDone,
+    },
+    sendButtonPressed: {
+      opacity: 0.85,
+    },
+    sendButtonDisabled: {
+      opacity: 0.5,
+    },
+    sendButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 14,
+      letterSpacing: 1,
+      color: "#FFFFFF",
+    },
+  });

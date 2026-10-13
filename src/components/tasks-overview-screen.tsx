@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   LayoutAnimation,
   Platform,
@@ -25,7 +25,9 @@ import { ProjectCard } from "@/components/project-card";
 import { TaskCard } from "@/components/task-card";
 import { Spacing } from "@/constants/theme";
 import type { ProjectSummary } from "@/lib/tasks";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Profile, TaskWithRelations } from "@/types/tasks";
 
 if (
@@ -101,6 +103,8 @@ export function TasksOverviewScreen({
   onEditTask,
   onOpenThread,
 }: TasksOverviewScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -246,6 +250,8 @@ function OverviewCard({
   label: string;
   valueColor: string;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.overviewCard}>
       <Text style={[styles.overviewValue, { color: valueColor }]}>{value}</Text>
@@ -254,107 +260,108 @@ function OverviewCard({
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  listContent: {
-    paddingHorizontal: 18,
-    paddingTop: Spacing.three,
-    paddingBottom: 110,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  headerText: {
-    flex: 1,
-    gap: 4,
-  },
-  dateLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 11,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    color: colors.textMutedLight,
-  },
-  greeting: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    lineHeight: 28,
-    color: colors.ink,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.three,
-    marginBottom: Spacing.four,
-  },
-  loadErrorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    marginBottom: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: Spacing.two,
-  },
-  overviewRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: Spacing.four,
-  },
-  overviewCard: {
-    flex: 1,
-    height: 70,
-    borderRadius: 15,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-  },
-  overviewValue: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-  },
-  overviewLabel: {
-    fontFamily: "DMMono_400Regular",
-    fontSize: 9,
-    letterSpacing: 0.4,
-    color: colors.textMuted,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-    marginBottom: Spacing.three,
-  },
-  fab: {
-    position: "absolute",
-    right: 19,
-    bottom: Spacing.three,
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  fabPlus: {
-    color: "#FFFFFF",
-    fontSize: 26,
-    lineHeight: 28,
-    fontFamily: "DMSans_600SemiBold",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    listContent: {
+      paddingHorizontal: 18,
+      paddingTop: Spacing.three,
+      paddingBottom: 110,
+    },
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    headerText: {
+      flex: 1,
+      gap: 4,
+    },
+    dateLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 11,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      color: colors.textMutedLight,
+    },
+    greeting: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      lineHeight: 28,
+      color: colors.ink,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.three,
+      marginBottom: Spacing.four,
+    },
+    loadErrorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      marginBottom: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: Spacing.two,
+    },
+    overviewRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginBottom: Spacing.four,
+    },
+    overviewCard: {
+      flex: 1,
+      height: 70,
+      borderRadius: 15,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 2,
+    },
+    overviewValue: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+    },
+    overviewLabel: {
+      fontFamily: "DMMono_400Regular",
+      fontSize: 9,
+      letterSpacing: 0.4,
+      color: colors.textMuted,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+      marginBottom: Spacing.three,
+    },
+    fab: {
+      position: "absolute",
+      right: 19,
+      bottom: Spacing.three,
+      width: 50,
+      height: 50,
+      borderRadius: 15,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    fabPlus: {
+      color: "#FFFFFF",
+      fontSize: 26,
+      lineHeight: 28,
+      fontFamily: "DMSans_600SemiBold",
+    },
+  });

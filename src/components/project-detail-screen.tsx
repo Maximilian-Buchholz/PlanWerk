@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -21,7 +21,8 @@ import { KanbanBoard } from "@/components/kanban-board";
 import { SegmentedToggle } from "@/components/segmented-toggle";
 import { TaskCard } from "@/components/task-card";
 import { Spacing } from "@/constants/theme";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Phase, Profile, TaskWithRelations } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -72,6 +73,8 @@ export function ProjectDetailScreen({
   onDeleteTask,
   onDeleteProject,
 }: ProjectDetailScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -291,6 +294,8 @@ export function ProjectDetailScreen({
 }
 
 function TrashGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.trash}>
       <View style={glyphStyles.trashLid} />
@@ -299,147 +304,149 @@ function TrashGlyph() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  boardHeader: {
-    paddingHorizontal: 18,
-    paddingTop: Spacing.two,
-  },
-  panes: {
-    flex: 1,
-    overflow: "hidden",
-  },
-  listContent: {
-    paddingHorizontal: 18,
-    paddingTop: Spacing.two,
-    paddingBottom: 110,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  // Same back button as the other screens (profile, teams, messages …).
-  backRow: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-    marginBottom: Spacing.two,
-  },
-  deleteProjectButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.two,
-  },
-  backIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: Spacing.two,
-  },
-  title: {
-    flex: 1,
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 24,
-    lineHeight: 30,
-    color: colors.ink,
-  },
-  subtitle: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-    marginTop: 4,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.three,
-    marginBottom: Spacing.four,
-  },
-  loadErrorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    marginBottom: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-  },
-  tasksSectionRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    marginBottom: Spacing.two,
-  },
-  tasksSectionCount: {
-    fontFamily: "DMMono_400Regular",
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-    marginBottom: Spacing.three,
-  },
-  fab: {
-    position: "absolute",
-    right: 19,
-    bottom: Spacing.three,
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  fabPlus: {
-    color: "#FFFFFF",
-    fontSize: 26,
-    lineHeight: 28,
-    fontFamily: "DMSans_600SemiBold",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    boardHeader: {
+      paddingHorizontal: 18,
+      paddingTop: Spacing.two,
+    },
+    panes: {
+      flex: 1,
+      overflow: "hidden",
+    },
+    listContent: {
+      paddingHorizontal: 18,
+      paddingTop: Spacing.two,
+      paddingBottom: 110,
+    },
+    topRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    // Same back button as the other screens (profile, teams, messages …).
+    backRow: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+      marginBottom: Spacing.two,
+    },
+    deleteProjectButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.two,
+    },
+    backIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: Spacing.two,
+    },
+    title: {
+      flex: 1,
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 24,
+      lineHeight: 30,
+      color: colors.ink,
+    },
+    subtitle: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 4,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.three,
+      marginBottom: Spacing.four,
+    },
+    loadErrorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      marginBottom: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+    },
+    tasksSectionRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      marginBottom: Spacing.two,
+    },
+    tasksSectionCount: {
+      fontFamily: "DMMono_400Regular",
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+      marginBottom: Spacing.three,
+    },
+    fab: {
+      position: "absolute",
+      right: 19,
+      bottom: Spacing.three,
+      width: 50,
+      height: 50,
+      borderRadius: 15,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    fabPlus: {
+      color: "#FFFFFF",
+      fontSize: 26,
+      lineHeight: 28,
+      fontFamily: "DMSans_600SemiBold",
+    },
+  });
 
-const glyphStyles = StyleSheet.create({
-  trash: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-  },
-  trashLid: {
-    width: 14,
-    height: 2,
-    backgroundColor: colors.priorityHighText,
-    borderRadius: 1,
-  },
-  trashBody: {
-    width: 12,
-    height: 13,
-    marginTop: 1,
-    borderWidth: 1.6,
-    borderColor: colors.priorityHighText,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-  },
-});
+const makeGlyphStyles = (colors: Palette) =>
+  StyleSheet.create({
+    trash: {
+      width: 20,
+      height: 20,
+      alignItems: "center",
+    },
+    trashLid: {
+      width: 14,
+      height: 2,
+      backgroundColor: colors.priorityHighText,
+      borderRadius: 1,
+    },
+    trashBody: {
+      width: 12,
+      height: 13,
+      marginTop: 1,
+      borderWidth: 1.6,
+      borderColor: colors.priorityHighText,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 3,
+      borderBottomRightRadius: 3,
+    },
+  });

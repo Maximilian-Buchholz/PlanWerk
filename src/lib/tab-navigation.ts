@@ -19,15 +19,16 @@ const TAB_PATHS: Record<TabKey, string> = {
  * in the bottom tab bar, so switching tabs always feels like moving along
  * one continuous horizontal strip instead of a generic push animation.
  */
-export function navigateToTab(router: Router, from: TabKey, to: TabKey) {
+export function navigateToTab(router: Router, from: TabKey | null, to: TabKey) {
   if (from === to) return;
 
-  const fromIndex = TAB_ORDER.indexOf(from);
+  const fromIndex = from ? TAB_ORDER.indexOf(from) : -1;
   const toIndex = TAB_ORDER.indexOf(to);
   const anim = toIndex < fromIndex ? "left" : "right";
   const pathname = TAB_PATHS[to];
 
-  if (to === "tasks") {
+  // Leaving a tab-less screen (profile) replaces it so "back" doesn't return there.
+  if (to === "tasks" || from === null) {
     router.replace({ pathname, params: { anim } } as never);
   } else {
     router.push({ pathname, params: { anim } } as never);

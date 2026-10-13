@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,7 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DatePickerSheet } from "@/components/date-picker-sheet";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -32,6 +33,8 @@ export type CreateProjectScreenProps = {
 };
 
 export function CreateProjectScreen({ onBack, onSubmit }: CreateProjectScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -178,6 +181,8 @@ export function CreateProjectScreen({ onBack, onSubmit }: CreateProjectScreenPro
 }
 
 function CalendarGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.calendar}>
       <View style={glyphStyles.calendarTop} />
@@ -187,127 +192,129 @@ function CalendarGlyph() {
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  content: {
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: -Spacing.two,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    borderWidth: 1,
-    borderColor: "transparent",
-    padding: Spacing.three,
-    gap: 4,
-  },
-  cardFocused: {
-    borderColor: colors.brandOrange,
-  },
-  fieldLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 10,
-    letterSpacing: 0.5,
-    color: colors.textMutedLight,
-  },
-  nameInput: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 16,
-    color: colors.ink,
-    padding: 0,
-  },
-  dueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dueValue: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.brandOrange,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    textAlign: "center",
-  },
-  submitButton: {
-    height: 49,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: Spacing.two,
-  },
-  submitButtonPressed: {
-    opacity: 0.85,
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 14,
-    letterSpacing: 1,
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 18,
+      color: colors.ink,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    content: {
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      gap: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: -Spacing.two,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      borderWidth: 1,
+      borderColor: "transparent",
+      padding: Spacing.three,
+      gap: 4,
+    },
+    cardFocused: {
+      borderColor: colors.brandOrange,
+    },
+    fieldLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 10,
+      letterSpacing: 0.5,
+      color: colors.textMutedLight,
+    },
+    nameInput: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 16,
+      color: colors.ink,
+      padding: 0,
+    },
+    dueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    dueValue: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.brandOrange,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      textAlign: "center",
+    },
+    submitButton: {
+      height: 49,
+      borderRadius: CARD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: Spacing.two,
+    },
+    submitButtonPressed: {
+      opacity: 0.85,
+    },
+    submitButtonDisabled: {
+      opacity: 0.5,
+    },
+    submitButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 14,
+      letterSpacing: 1,
+      color: "#FFFFFF",
+    },
+  });
 
-const glyphStyles = StyleSheet.create({
-  calendar: {
-    width: 16,
-    height: 15,
-    borderWidth: 1.4,
-    borderColor: colors.brandOrange,
-    borderRadius: 3,
-    justifyContent: "flex-start",
-  },
-  calendarTop: {
-    height: 3.5,
-    borderBottomWidth: 1.4,
-    borderColor: colors.brandOrange,
-  },
-});
+const makeGlyphStyles = (colors: Palette) =>
+  StyleSheet.create({
+    calendar: {
+      width: 16,
+      height: 15,
+      borderWidth: 1.4,
+      borderColor: colors.brandOrange,
+      borderRadius: 3,
+      justifyContent: "flex-start",
+    },
+    calendarTop: {
+      height: 3.5,
+      borderBottomWidth: 1.4,
+      borderColor: colors.brandOrange,
+    },
+  });

@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/avatar";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Profile } from "@/types/tasks";
 
 export type AvatarStackProps = {
@@ -11,6 +13,8 @@ export type AvatarStackProps = {
 };
 
 export function AvatarStack({ profiles, size = 28, max = 4 }: AvatarStackProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const shown = profiles.slice(0, max);
   const overflow = profiles.length - shown.length;
 
@@ -51,20 +55,21 @@ export function AvatarStack({ profiles, size = 28, max = 4 }: AvatarStackProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  overflow: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.textMutedLight,
-    borderWidth: 1.5,
-    borderColor: "#FFFFFF",
-  },
-  overflowText: {
-    fontFamily: "DMSans_600SemiBold",
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    overflow: {
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.textMutedLight,
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+    },
+    overflowText: {
+      fontFamily: "DMSans_600SemiBold",
+      color: "#FFFFFF",
+    },
+  });

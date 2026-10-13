@@ -1,13 +1,16 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon, type IconName } from "@/components/icons";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 export type TabKey = "teams" | "postfach" | "tasks" | "kalender";
 
 export type BottomTabBarProps = {
-  active: TabKey;
+  /** `null` on screens that belong to no tab (e.g. the profile): all tabs render inactive. */
+  active: TabKey | null;
   onNavigate?: (tab: TabKey) => void;
   /** Unread counts per tab; a tab with a count above zero shows a badge. */
   badges?: Partial<Record<TabKey, number>>;
@@ -21,6 +24,8 @@ const TABS: { key: TabKey; label: string; icon: IconName }[] = [
 ];
 
 export function BottomTabBar({ active, onNavigate, badges }: BottomTabBarProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -59,46 +64,47 @@ export function BottomTabBar({ active, onNavigate, badges }: BottomTabBarProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFFFF",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-  },
-  row: {
-    flexDirection: "row",
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  badge: {
-    position: "absolute",
-    top: -2,
-    right: -8,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    backgroundColor: colors.priorityHighText,
-    borderWidth: 1.5,
-    borderColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 10,
-    lineHeight: 12,
-    color: "#FFFFFF",
-  },
-  label: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 11,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+    },
+    row: {
+      flexDirection: "row",
+      paddingTop: 10,
+      paddingBottom: 6,
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+    },
+    badge: {
+      position: "absolute",
+      top: -2,
+      right: -8,
+      minWidth: 16,
+      height: 16,
+      paddingHorizontal: 4,
+      borderRadius: 8,
+      backgroundColor: colors.priorityHighText,
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    badgeText: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 10,
+      lineHeight: 12,
+      color: "#FFFFFF",
+    },
+    label: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 11,
+    },
+  });

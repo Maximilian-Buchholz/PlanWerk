@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { avatarColors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
 /**
  * Safety net for profiles whose stored color predates the current palette
@@ -46,6 +49,8 @@ export type AvatarProps = {
 };
 
 export function Avatar({ name, color, size = 28, shape = "circle", status, style }: AvatarProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View
       accessibilityLabel={name ?? "Unbekannter Nutzer"}
@@ -78,22 +83,23 @@ export function Avatar({ name, color, size = 28, shape = "circle", status, style
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "#FFFFFF",
-  },
-  statusDot: {
-    position: "absolute",
-    right: -3,
-    bottom: -3,
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  initials: {
-    fontFamily: "DMSans_600SemiBold",
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    base: {
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+    },
+    statusDot: {
+      position: "absolute",
+      right: -3,
+      bottom: -3,
+      borderWidth: 2,
+      borderColor: colors.surface,
+    },
+    initials: {
+      fontFamily: "DMSans_600SemiBold",
+      color: "#FFFFFF",
+    },
+  });

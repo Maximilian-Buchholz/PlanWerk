@@ -6,8 +6,8 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState, useMemo } from "react";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/avatar";
@@ -15,7 +15,9 @@ import { SettingsRow } from "@/components/settings-row";
 import { ToggleActionButton } from "@/components/toggle-action-button";
 import { Spacing } from "@/constants/theme";
 import { Icon } from "@/components/icons";
-import { avatarFallbackColor, colors } from "@/theme/colors";
+import { avatarFallbackColor } from "@/theme/colors";
+import { withAlpha, type Palette } from "@/theme/colors";
+import { useColors, useTheme } from "@/theme/theme-context";
 import type { Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -44,6 +46,10 @@ export function ProfileScreen({
   onSignOut,
   onChangeStatus,
 }: ProfileScreenProps) {
+  const { isDark, setDarkMode } = useTheme();
+  const [darkSwitch, setDarkSwitch] = useState(isDark);
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -163,6 +169,24 @@ export function ProfileScreen({
           <SettingsRow icon={<Icon name="globe" size={22} color={colors.brandOrange} />} label="Sprache" value={language} />
           <View style={styles.rowDivider} />
           <SettingsRow
+            icon={<Icon name="moon" size={22} color={colors.brandOrange} />}
+            label="Dunkelmodus"
+            accessory={
+              <Switch
+                value={darkSwitch}
+                onValueChange={(enabled) => {
+                  setDarkSwitch(enabled);
+                  setDarkMode(enabled);
+                }}
+                trackColor={{ false: colors.borderLight, true: colors.brandOrange }}
+                thumbColor="#FFFFFF"
+                ios_backgroundColor={colors.borderLight}
+                accessibilityLabel="Dunkelmodus"
+              />
+            }
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
             icon={<Icon name="teams" size={22} color={colors.brandOrange} />}
             label="Teamverwaltung"
             onPress={onPressTeamManagement}
@@ -182,115 +206,116 @@ export function ProfileScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-  },
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.three,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: Spacing.three,
-  },
-  profileInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  profileName: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  profileEmail: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 12,
-    color: colors.textMuted,
-    textDecorationLine: "underline",
-  },
-  editButton: {
-    backgroundColor: "rgba(232, 90, 26, 0.12)",
-    borderRadius: 10,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  editButtonText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.brandOrange,
-  },
-  toggleRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: -Spacing.two,
-  },
-  settingsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginLeft: 19 + 34 + Spacing.two,
-  },
-  signOutButton: {
-    alignItems: "center",
-    paddingVertical: Spacing.three,
-  },
-  signOutText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 13,
-    letterSpacing: 1,
-    color: colors.brandOrange,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 22,
+      color: colors.ink,
+    },
+    headerSpacer: {
+      flex: 1,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      gap: Spacing.three,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+    },
+    profileCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.three,
+      backgroundColor: colors.surface,
+      borderRadius: 15,
+      padding: Spacing.three,
+    },
+    profileInfo: {
+      flex: 1,
+      gap: 2,
+    },
+    profileName: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 18,
+      color: colors.ink,
+    },
+    profileEmail: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 12,
+      color: colors.textMuted,
+      textDecorationLine: "underline",
+    },
+    editButton: {
+      backgroundColor: withAlpha(colors.brandOrange, 0.12),
+      borderRadius: 10,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.two,
+    },
+    editButtonText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.brandOrange,
+    },
+    toggleRow: {
+      flexDirection: "row",
+      gap: Spacing.two,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: -Spacing.two,
+    },
+    settingsCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 15,
+    },
+    rowDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginLeft: 19 + 34 + Spacing.two,
+    },
+    signOutButton: {
+      alignItems: "center",
+      paddingVertical: Spacing.three,
+    },
+    signOutText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 13,
+      letterSpacing: 1,
+      color: colors.brandOrange,
+    },
+  });

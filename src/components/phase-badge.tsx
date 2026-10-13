@@ -1,18 +1,23 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 
-const PHASE_STYLES: Record<string, { text: string; bg: string }> = {
-  briefing: { text: colors.phaseBriefingText, bg: colors.phaseBriefingBg },
-  planung: { text: colors.phasePlanungText, bg: colors.phasePlanungBg },
-  umsetzung: { text: colors.phaseUmsetzungText, bg: colors.phaseUmsetzungBg },
-  review: { text: colors.phaseReviewText, bg: colors.phaseReviewBg },
-  abschluss: { text: colors.phaseAbschlussText, bg: colors.phaseAbschlussBg },
-};
-
-export function phaseBadgeColors(phaseName: string | null | undefined): { text: string; bg: string } {
-  if (!phaseName) return { text: colors.phaseNeutralText, bg: colors.phaseNeutralBg };
-  return PHASE_STYLES[phaseName.trim().toLowerCase()] ?? { text: colors.phaseNeutralText, bg: colors.phaseNeutralBg };
+export function phaseBadgeColors(
+  phaseName: string | null | undefined,
+  colors: Palette,
+): { text: string; bg: string } {
+  const phaseStyles: Record<string, { text: string; bg: string }> = {
+    briefing: { text: colors.phaseBriefingText, bg: colors.phaseBriefingBg },
+    planung: { text: colors.phasePlanungText, bg: colors.phasePlanungBg },
+    umsetzung: { text: colors.phaseUmsetzungText, bg: colors.phaseUmsetzungBg },
+    review: { text: colors.phaseReviewText, bg: colors.phaseReviewBg },
+    abschluss: { text: colors.phaseAbschlussText, bg: colors.phaseAbschlussBg },
+  };
+  const neutral = { text: colors.phaseNeutralText, bg: colors.phaseNeutralBg };
+  if (!phaseName) return neutral;
+  return phaseStyles[phaseName.trim().toLowerCase()] ?? neutral;
 }
 
 export type PhaseBadgeProps = {
@@ -20,7 +25,9 @@ export type PhaseBadgeProps = {
 };
 
 export function PhaseBadge({ phaseName }: PhaseBadgeProps) {
-  const { text, bg } = phaseBadgeColors(phaseName);
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { text, bg } = phaseBadgeColors(phaseName, colors);
 
   return (
     <View style={[styles.badge, { backgroundColor: bg }]} accessibilityLabel={`Phase: ${phaseName ?? "unbekannt"}`}>
@@ -31,18 +38,19 @@ export function PhaseBadge({ phaseName }: PhaseBadgeProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    height: 22,
-    borderRadius: 6,
-    paddingHorizontal: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "flex-start",
-  },
-  text: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 10,
-    letterSpacing: 0.4,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    badge: {
+      height: 22,
+      borderRadius: 6,
+      paddingHorizontal: 9,
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "flex-start",
+    },
+    text: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 10,
+      letterSpacing: 0.4,
+    },
+  });

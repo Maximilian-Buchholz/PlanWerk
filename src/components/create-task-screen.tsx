@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -26,7 +26,8 @@ import { DatePickerSheet } from "@/components/date-picker-sheet";
 import { Spacing } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/errors";
 import type { Team } from "@/lib/teams";
-import { colors } from "@/theme/colors";
+import type { Palette } from "@/theme/colors";
+import { useColors } from "@/theme/theme-context";
 import type { Phase, Priority, Profile } from "@/types/tasks";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -77,6 +78,8 @@ export function CreateTaskScreen({
   onBack,
   onSubmit,
 }: CreateTaskScreenProps) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -441,6 +444,8 @@ export function CreateTaskScreen({
 }
 
 function CalendarGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.calendar}>
       <View style={glyphStyles.calendarTop} />
@@ -449,6 +454,8 @@ function CalendarGlyph() {
 }
 
 function AddPersonGlyph() {
+  const colors = useColors();
+  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return (
     <View style={glyphStyles.addPerson}>
       <View style={glyphStyles.addPersonH} />
@@ -459,255 +466,257 @@ function AddPersonGlyph() {
 
 const CARD_RADIUS = 15;
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.warmCream,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 19,
-    paddingTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -Spacing.two,
-  },
-  backButtonIcon: {
-    fontSize: 26,
-    color: colors.ink,
-  },
-  headerTitle: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginTop: Spacing.two,
-  },
-  scrollContent: {
-    paddingHorizontal: 19,
-    paddingTop: Spacing.four,
-    paddingBottom: Spacing.six,
-    gap: Spacing.three,
-  },
-  sectionLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 0.5,
-    color: colors.textMuted,
-    marginBottom: -Spacing.two,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: CARD_RADIUS,
-    borderWidth: 1,
-    borderColor: "transparent",
-    padding: Spacing.three,
-  },
-  titleCard: {
-    gap: 4,
-  },
-  titleCardFocused: {
-    borderColor: colors.brandOrange,
-  },
-  fieldLabel: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 10,
-    letterSpacing: 0.5,
-    color: colors.textMutedLight,
-  },
-  titleInput: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 16,
-    color: colors.ink,
-    padding: 0,
-  },
-  row: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
-  halfCard: {
-    flex: 1,
-    gap: Spacing.two,
-  },
-  dueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dueValue: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 14,
-    color: colors.brandOrange,
-  },
-  dueHint: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 11,
-    color: colors.textMutedLight,
-    marginTop: 4,
-  },
-  projectName: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: 15,
-    color: colors.ink,
-    marginTop: 2,
-  },
-  descriptionCard: {
-    gap: Spacing.two,
-    minHeight: 120,
-  },
-  descriptionInput: {
-    flex: 1,
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    color: colors.ink,
-    padding: 0,
-  },
-  teamChipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-    marginBottom: Spacing.two,
-  },
-  phaseRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
-  phaseChip: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.one,
-    borderRadius: 10,
-    // Transparent until selected, so choosing a phase doesn't shift the layout.
-    borderWidth: 1.5,
-    borderColor: "transparent",
-    backgroundColor: colors.warmCream,
-  },
-  phaseChipSelected: {
-    borderColor: colors.brandOrange,
-  },
-  phaseChipText: {
-    fontFamily: "DMMono_500Medium",
-    letterSpacing: 0.3,
-    color: colors.textMuted,
-  },
-  phaseChipTextSelected: {
-    color: colors.ink,
-  },
-  teamChip: {
-    backgroundColor: colors.warmCream,
-    borderRadius: 20,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: 6,
-    maxWidth: 160,
-  },
-  teamChipSelected: {
-    backgroundColor: colors.brandOrange,
-  },
-  teamChipText: {
-    fontFamily: "DMSans_500Medium",
-    fontSize: 13,
-    color: colors.ink,
-  },
-  teamChipTextSelected: {
-    color: "#FFFFFF",
-  },
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-    paddingVertical: Spacing.two,
-  },
-  memberName: {
-    flex: 1,
-    fontFamily: "DMSans_400Regular",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  memberCheck: {
-    color: colors.brandOrange,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  emptyText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.textMuted,
-    paddingVertical: Spacing.two,
-  },
-  errorText: {
-    fontFamily: "DMSans_400Regular",
-    fontSize: 13,
-    color: colors.priorityHighText,
-    textAlign: "center",
-  },
-  submitButton: {
-    height: 49,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.brandOrange,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: Spacing.two,
-  },
-  submitButtonPressed: {
-    opacity: 0.85,
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    fontFamily: "DMMono_500Medium",
-    fontSize: 14,
-    letterSpacing: 1,
-    color: "#FFFFFF",
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.warmCream,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 19,
+      paddingTop: Spacing.two,
+      gap: Spacing.two,
+    },
+    backButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: -Spacing.two,
+    },
+    backButtonIcon: {
+      fontSize: 26,
+      color: colors.ink,
+    },
+    headerTitle: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 18,
+      color: colors.ink,
+    },
+    headerDivider: {
+      height: 1,
+      backgroundColor: colors.borderLight,
+      marginTop: Spacing.two,
+    },
+    scrollContent: {
+      paddingHorizontal: 19,
+      paddingTop: Spacing.four,
+      paddingBottom: Spacing.six,
+      gap: Spacing.three,
+    },
+    sectionLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 12,
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+      marginBottom: -Spacing.two,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: CARD_RADIUS,
+      borderWidth: 1,
+      borderColor: "transparent",
+      padding: Spacing.three,
+    },
+    titleCard: {
+      gap: 4,
+    },
+    titleCardFocused: {
+      borderColor: colors.brandOrange,
+    },
+    fieldLabel: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 10,
+      letterSpacing: 0.5,
+      color: colors.textMutedLight,
+    },
+    titleInput: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 16,
+      color: colors.ink,
+      padding: 0,
+    },
+    row: {
+      flexDirection: "row",
+      gap: Spacing.two,
+    },
+    halfCard: {
+      flex: 1,
+      gap: Spacing.two,
+    },
+    dueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    dueValue: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 14,
+      color: colors.brandOrange,
+    },
+    dueHint: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 11,
+      color: colors.textMutedLight,
+      marginTop: 4,
+    },
+    projectName: {
+      fontFamily: "DMSans_600SemiBold",
+      fontSize: 15,
+      color: colors.ink,
+      marginTop: 2,
+    },
+    descriptionCard: {
+      gap: Spacing.two,
+      minHeight: 120,
+    },
+    descriptionInput: {
+      flex: 1,
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      color: colors.ink,
+      padding: 0,
+    },
+    teamChipRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.two,
+      marginBottom: Spacing.two,
+    },
+    phaseRow: {
+      flexDirection: "row",
+      gap: Spacing.two,
+    },
+    phaseChip: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: Spacing.two,
+      paddingHorizontal: Spacing.one,
+      borderRadius: 10,
+      // Transparent until selected, so choosing a phase doesn't shift the layout.
+      borderWidth: 1.5,
+      borderColor: "transparent",
+      backgroundColor: colors.warmCream,
+    },
+    phaseChipSelected: {
+      borderColor: colors.brandOrange,
+    },
+    phaseChipText: {
+      fontFamily: "DMMono_500Medium",
+      letterSpacing: 0.3,
+      color: colors.textMuted,
+    },
+    phaseChipTextSelected: {
+      color: colors.ink,
+    },
+    teamChip: {
+      backgroundColor: colors.warmCream,
+      borderRadius: 20,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: 6,
+      maxWidth: 160,
+    },
+    teamChipSelected: {
+      backgroundColor: colors.brandOrange,
+    },
+    teamChipText: {
+      fontFamily: "DMSans_500Medium",
+      fontSize: 13,
+      color: colors.ink,
+    },
+    teamChipTextSelected: {
+      color: "#FFFFFF",
+    },
+    memberRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.two,
+      paddingVertical: Spacing.two,
+    },
+    memberName: {
+      flex: 1,
+      fontFamily: "DMSans_400Regular",
+      fontSize: 14,
+      color: colors.ink,
+    },
+    memberCheck: {
+      color: colors.brandOrange,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    emptyText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.textMuted,
+      paddingVertical: Spacing.two,
+    },
+    errorText: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 13,
+      color: colors.priorityHighText,
+      textAlign: "center",
+    },
+    submitButton: {
+      height: 49,
+      borderRadius: CARD_RADIUS,
+      backgroundColor: colors.brandOrange,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: Spacing.two,
+    },
+    submitButtonPressed: {
+      opacity: 0.85,
+    },
+    submitButtonDisabled: {
+      opacity: 0.5,
+    },
+    submitButtonText: {
+      fontFamily: "DMMono_500Medium",
+      fontSize: 14,
+      letterSpacing: 1,
+      color: "#FFFFFF",
+    },
+  });
 
-const glyphStyles = StyleSheet.create({
-  calendar: {
-    width: 16,
-    height: 15,
-    borderWidth: 1.4,
-    borderColor: colors.brandOrange,
-    borderRadius: 3,
-    justifyContent: "flex-start",
-  },
-  calendarTop: {
-    height: 3.5,
-    borderBottomWidth: 1.4,
-    borderColor: colors.brandOrange,
-  },
-  addPerson: {
-    width: 14,
-    height: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addPersonH: {
-    position: "absolute",
-    width: 14,
-    height: 1.6,
-    backgroundColor: colors.brandOrange,
-    borderRadius: 1,
-  },
-  addPersonV: {
-    position: "absolute",
-    width: 1.6,
-    height: 14,
-    backgroundColor: colors.brandOrange,
-    borderRadius: 1,
-  },
-});
+const makeGlyphStyles = (colors: Palette) =>
+  StyleSheet.create({
+    calendar: {
+      width: 16,
+      height: 15,
+      borderWidth: 1.4,
+      borderColor: colors.brandOrange,
+      borderRadius: 3,
+      justifyContent: "flex-start",
+    },
+    calendarTop: {
+      height: 3.5,
+      borderBottomWidth: 1.4,
+      borderColor: colors.brandOrange,
+    },
+    addPerson: {
+      width: 14,
+      height: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    addPersonH: {
+      position: "absolute",
+      width: 14,
+      height: 1.6,
+      backgroundColor: colors.brandOrange,
+      borderRadius: 1,
+    },
+    addPersonV: {
+      position: "absolute",
+      width: 1.6,
+      height: 14,
+      backgroundColor: colors.brandOrange,
+      borderRadius: 1,
+    },
+  });
