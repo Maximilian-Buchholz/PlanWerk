@@ -1,2 +1,2 @@
 # PlanWerk
-Projectmanagement App inspired by Asana and Trello
+Projektmanagement-App inspiriert von Asana und Trello
