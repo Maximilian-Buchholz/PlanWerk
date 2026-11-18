@@ -6,7 +6,7 @@ import { Icon, type IconName } from "@/components/icons";
 import type { Palette } from "@/theme/colors";
 import { useColors } from "@/theme/theme-context";
 
-export type TabKey = "teams" | "postfach" | "tasks" | "kalender";
+export type TabKey = "teams" | "postfach" | "tasks" | "kalender" | "assistant";
 
 export type BottomTabBarProps = {
   /** `null` on screens that belong to no tab (e.g. the profile): all tabs render inactive. */
@@ -16,11 +16,13 @@ export type BottomTabBarProps = {
   badges?: Partial<Record<TabKey, number>>;
 };
 
-const TABS: { key: TabKey; label: string; icon: IconName }[] = [
+const TABS: { key: TabKey; label: string; icon?: IconName }[] = [
   { key: "teams", label: "Teams", icon: "teams" },
   { key: "postfach", label: "Postfach", icon: "mail" },
   { key: "tasks", label: "Projekte", icon: "checklist" },
   { key: "kalender", label: "Kalender", icon: "calendar" },
+  // No fitting icon in the shared sprite yet — falls back to a sparkle glyph below.
+  { key: "assistant", label: "KI", icon: undefined },
 ];
 
 export function BottomTabBar({ active, onNavigate, badges }: BottomTabBarProps) {
@@ -46,7 +48,11 @@ export function BottomTabBar({ active, onNavigate, badges }: BottomTabBarProps) 
               accessibilityState={{ selected: isActive }}
             >
               <View>
-                <Icon name={tab.icon} size={26} color={color} />
+                {tab.icon ? (
+                  <Icon name={tab.icon} size={26} color={color} />
+                ) : (
+                  <Text style={[styles.sparkle, { color }]}>✨</Text>
+                )}
                 {(badges?.[tab.key] ?? 0) > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>
@@ -82,6 +88,11 @@ const makeStyles = (colors: Palette) =>
       flex: 1,
       alignItems: "center",
       gap: 4,
+    },
+    sparkle: {
+      fontSize: 20,
+      lineHeight: 26,
+      textAlign: "center",
     },
     badge: {
       position: "absolute",

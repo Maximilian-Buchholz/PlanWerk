@@ -98,7 +98,6 @@ export type ProjectSummary = {
   totalTasks: number;
   doneTasks: number;
   members: Profile[];
-  openCommentsCount: number;
 };
 
 /** Project cards for the dashboard: one summary row per project the user belongs to. */
@@ -122,7 +121,7 @@ export async function fetchProjectsOverview(userId: string): Promise<ProjectSumm
     supabase.from("phases").select("*").in("project_id", projectIds).order("position", { ascending: true }),
     supabase
       .from("tasks")
-      .select("id, project_id, phase_id, is_done, task_comments(count)")
+      .select("id, project_id, phase_id, is_done")
       .in("project_id", projectIds),
     supabase
       .from("project_members")
@@ -155,10 +154,6 @@ export async function fetchProjectsOverview(userId: string): Promise<ProjectSumm
     const phases = phasesByProject.get(project.id) ?? [];
     const tasks = (taskRows ?? []).filter((task: any) => task.project_id === project.id);
     const doneTasks = tasks.filter((task: any) => task.is_done).length;
-    const openCommentsCount = tasks.reduce(
-      (sum: number, task: any) => sum + (task.task_comments?.[0]?.count ?? 0),
-      0,
-    );
 
     const firstOpenPhase = phases.find((phase) =>
       tasks.some((task: any) => task.phase_id === phase.id && !task.is_done),
@@ -173,7 +168,6 @@ export async function fetchProjectsOverview(userId: string): Promise<ProjectSumm
       totalTasks: tasks.length,
       doneTasks,
       members: membersByProject.get(project.id) ?? [],
-      openCommentsCount,
     };
   });
 }

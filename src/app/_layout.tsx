@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { BottomTabBar, type TabKey } from '@/components/bottom-tab-bar';
+import { AssistantChatProvider } from '@/lib/assistant-chat-context';
 import { PresenceProvider } from '@/lib/presence';
 import { navigateToTab } from '@/lib/tab-navigation';
 import { ThemeProvider, useTheme } from '@/theme/theme-context';
@@ -38,6 +39,7 @@ function activeTabForPathname(pathname: string): TabKey | null {
   if (pathname === '/teams') return 'teams';
   if (pathname === '/postfach') return 'postfach';
   if (pathname === '/calendar') return 'kalender';
+  if (pathname === '/assistant') return 'assistant';
   if (pathname === '/tasks/new-project') return null;
   if (pathname === '/tasks/thread') return null;
   if (pathname === '/tasks' || pathname.startsWith('/tasks/')) return 'tasks';
@@ -69,6 +71,7 @@ function ThemedRoot() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.warmCream }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <PresenceProvider>
+      <AssistantChatProvider>
       <AnimatedSplashOverlay />
       {/* The tab bar lives outside the Stack so it never slides along with
           screen transitions — only the content area above it animates. */}
@@ -85,12 +88,14 @@ function ThemedRoot() {
           <Stack.Screen name="teams" options={tabScreenOptions} />
           <Stack.Screen name="postfach" options={tabScreenOptions} />
           <Stack.Screen name="calendar" options={tabScreenOptions} />
+          <Stack.Screen name="assistant" options={tabScreenOptions} />
           <Stack.Screen name="tasks/index" options={tabScreenOptions} />
         </Stack>
       </View>
       {showTabBar && (
         <BottomTabBar active={activeTab} badges={{ postfach: unreadCount }} onNavigate={(tab) => navigateToTab(router, activeTab, tab)} />
       )}
+      </AssistantChatProvider>
       </PresenceProvider>
     </GestureHandlerRootView>
   );

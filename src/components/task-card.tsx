@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import Swipeable, { type SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -47,7 +47,7 @@ export type TaskCardProps = {
   onToggleDone: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onEdit?: (taskId: string) => void;
-  /** Opens the comments & history window of the task (the pencil). */
+  /** Opens the comments & history window of the task (the comment icon). */
   onOpenThread?: (taskId: string) => void;
 };
 
@@ -58,7 +58,7 @@ const EXPAND_EASING = Easing.bezier(0.4, 0, 0.2, 1);
 export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDelete, onEdit, onOpenThread }: TaskCardProps) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const due = formatDueDate(task.due_date);
 
   const progress = useSharedValue(isExpanded ? 1 : 0);
@@ -162,21 +162,16 @@ export function TaskCard({ task, isExpanded, onToggleExpand, onToggleDone, onDel
             <View style={styles.expandedFooter}>
               <AvatarStack profiles={task.assignees} />
 
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <CommentGlyph />
-                  <Text style={styles.metaText}>{task.commentCount}</Text>
-                </View>
-                <Pressable
-                  onPress={() => onOpenThread?.(task.id)}
-                  hitSlop={10}
-                  style={styles.metaItem}
-                  accessibilityRole="button"
-                  accessibilityLabel="Kommentare und Verlauf öffnen"
-                >
-                  <PencilGlyph />
-                </Pressable>
-              </View>
+              <Pressable
+                onPress={() => onOpenThread?.(task.id)}
+                hitSlop={10}
+                style={styles.metaItem}
+                accessibilityRole="button"
+                accessibilityLabel="Kommentare und Verlauf öffnen"
+              >
+                <CommentGlyph />
+                <Text style={styles.metaText}>{task.commentCount}</Text>
+              </Pressable>
             </View>
           </View>
         </Animated.View>
@@ -211,12 +206,6 @@ function CommentGlyph() {
   const colors = useColors();
   const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
   return <View style={glyphStyles.comment} />;
-}
-
-function PencilGlyph() {
-  const colors = useColors();
-  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
-  return <View style={glyphStyles.pencil} />;
 }
 
 const CARD_RADIUS = 15;
@@ -307,14 +296,12 @@ const makeStyles = (colors: Palette) =>
       justifyContent: "space-between",
       marginTop: Spacing.two,
     },
-    metaRow: {
-      flexDirection: "row",
-      gap: Spacing.three,
-    },
     metaItem: {
       flexDirection: "row",
       alignItems: "center",
       gap: 4,
+      // Stays on the right even when there are no assignees to its left.
+      marginLeft: "auto",
     },
     metaText: {
       fontFamily: "DMSans_500Medium",
@@ -341,7 +328,7 @@ const makeGlyphStyles = (colors: Palette) =>
     trashLid: {
       width: 14,
       height: 2,
-      backgroundColor: colors.surface,
+      backgroundColor: "#FFFFFF",
       borderRadius: 1,
     },
     trashBody: {
@@ -361,12 +348,5 @@ const makeGlyphStyles = (colors: Palette) =>
       borderColor: colors.textMuted,
       borderRadius: 3,
       borderBottomRightRadius: 0,
-    },
-    pencil: {
-      width: 12,
-      height: 2.2,
-      backgroundColor: colors.textMuted,
-      borderRadius: 1,
-      transform: [{ rotate: "-45deg" }],
     },
   });

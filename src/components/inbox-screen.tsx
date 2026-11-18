@@ -366,6 +366,9 @@ export function InboxScreen({
               </View>
 
               <ExpandableBody text={item.title} />
+              {item.body === "via_ai" && (
+                <Text style={styles.aiHint}>🤖 Über den KI-Assistenten gesendet</Text>
+              )}
 
               {showActions && (
                 <>
@@ -660,6 +663,12 @@ const makeStyles = (colors: Palette) =>
       fontFamily: "DMSans_500Medium",
       fontSize: 12,
       color: colors.brandOrange,
+    },
+    aiHint: {
+      fontFamily: "DMSans_400Regular",
+      fontSize: 11,
+      color: colors.textMutedLight,
+      marginTop: 2,
     },
     bodyText: {
       fontFamily: "DMSans_400Regular",

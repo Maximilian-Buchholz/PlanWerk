@@ -1,6 +1,6 @@
 import Storage from 'expo-sqlite/kv-store';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Animated, Appearance, useColorScheme, View } from 'react-native';
+import { Animated, Appearance, Platform, useColorScheme, View } from 'react-native';
 
 import { darkColors, lightColors, type Palette } from '@/theme/colors';
 
@@ -40,8 +40,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDark = stored ? stored === 'dark' : systemScheme === 'dark';
 
   // Keeps native chrome (keyboard, date pickers, alerts) in step with the app.
+  // react-native-web doesn't implement this imperative API — there's no
+  // native chrome to match on web, so skip it there.
   useEffect(() => {
-    Appearance.setColorScheme(stored ?? 'unspecified');
+    if (Platform.OS !== 'web') {
+      Appearance.setColorScheme(stored ?? 'unspecified');
+    }
   }, [stored]);
 
   // Fade the whole app out, swap the palette while it is invisible, fade back in.

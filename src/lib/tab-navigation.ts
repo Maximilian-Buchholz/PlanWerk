@@ -5,13 +5,14 @@ import type { TabKey } from "@/components/bottom-tab-bar";
 type Router = ReturnType<typeof useRouter>;
 
 /** Left-to-right order of the tabs as they appear in the bottom tab bar. */
-const TAB_ORDER: TabKey[] = ["teams", "postfach", "tasks", "kalender"];
+const TAB_ORDER: TabKey[] = ["teams", "postfach", "tasks", "kalender", "assistant"];
 
 const TAB_PATHS: Record<TabKey, string> = {
   teams: "/teams",
   postfach: "/postfach",
   tasks: "/tasks",
   kalender: "/calendar",
+  assistant: "/assistant",
 };
 
 /**

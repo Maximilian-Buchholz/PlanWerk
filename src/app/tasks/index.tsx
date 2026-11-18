@@ -8,7 +8,10 @@ import { deleteTask, fetchDashboardTasks, fetchProjectsOverview, setTaskDone, ty
 import type { Profile, TaskWithRelations } from '@/types/tasks';
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  // Local date, not UTC — toISOString() would still say "yesterday" shortly after midnight.
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 export default function TasksRoute() {
@@ -51,6 +54,7 @@ export default function TasksRoute() {
 
   const today = todayIsoDate();
   const dueTodayTasks = tasks.filter((task) => !task.is_done && task.due_date === today);
+  const dueTodayProjectsCount = projects.filter((project) => project.dueDate === today).length;
   const openTasksCount = tasks.filter((task) => !task.is_done).length;
 
   async function handleToggleDone(taskId: string) {
@@ -93,7 +97,7 @@ export default function TasksRoute() {
       username={currentUser?.full_name ?? undefined}
       currentUser={currentUser}
       openTasksCount={openTasksCount}
-      dueTodayCount={dueTodayTasks.length}
+      dueTodayCount={dueTodayProjectsCount}
       dueTodayTasks={dueTodayTasks}
       projects={projects}
       loadError={loadError}

@@ -13,12 +13,6 @@ export type ProjectCardProps = {
   onPress?: (projectId: string) => void;
 };
 
-function CommentGlyph() {
-  const colors = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return <View style={styles.commentGlyph} />;
-}
-
 function formatDueDate(dueDate: string | null): { text: string; isOverdue: boolean } | null {
   if (!dueDate) return null;
   const due = new Date(`${dueDate}T00:00:00`);
@@ -68,10 +62,6 @@ export function ProjectCard({ project, onPress }: ProjectCardProps) {
 
       <View style={styles.footerRow}>
         <AvatarStack profiles={project.members} size={26} />
-        <View style={styles.commentRow}>
-          <CommentGlyph />
-          <Text style={styles.commentText}>{project.openCommentsCount} offen</Text>
-        </View>
       </View>
     </Pressable>
   );
@@ -127,23 +117,5 @@ const makeStyles = (colors: Palette) =>
       alignItems: "center",
       justifyContent: "space-between",
       marginTop: 2,
-    },
-    commentRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-    },
-    commentGlyph: {
-      width: 14,
-      height: 11,
-      borderWidth: 1.4,
-      borderColor: colors.textMuted,
-      borderRadius: 3,
-      borderBottomRightRadius: 0,
-    },
-    commentText: {
-      fontFamily: "DMSans_500Medium",
-      fontSize: 12,
-      color: colors.textMuted,
     },
   });

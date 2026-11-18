@@ -1,5 +1,14 @@
 import { useMemo, useRef, useState } from "react";
-import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  type ViewInstance,
+} from "react-native";
 import Animated, {
   scrollTo,
   useAnimatedRef,
@@ -59,7 +68,7 @@ export function KanbanBoard({ phases, tasks, onMoveTask, onEditTask }: KanbanBoa
   const contentWidth =
     BOARD_PADDING * 2 + phaseCount * columnWidth + Math.max(0, phaseCount - 1) * COLUMN_GAP;
 
-  const rootRef = useRef<View>(null);
+  const rootRef = useRef<ViewInstance>(null);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollX = useSharedValue(0);
   const originX = useSharedValue(0);

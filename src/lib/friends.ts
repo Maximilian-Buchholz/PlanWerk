@@ -70,12 +70,15 @@ export async function sendDirectMessage(input: {
   senderName: string | null;
   recipientId: string;
   body: string;
+  /** Set when sent via the AI assistant — the recipient still sees the real sender name, plus a visible hint. */
+  viaAi?: boolean;
 }) {
   const { error } = await supabase.from("notifications").insert({
     recipient_id: input.recipientId,
     sender_id: input.senderId,
     type: "direct_message",
     title: input.body,
+    body: input.viaAi ? "via_ai" : null,
   });
   if (error) throw error;
 }
