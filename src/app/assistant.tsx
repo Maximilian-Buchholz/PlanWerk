@@ -86,6 +86,8 @@ export default function AssistantRoute() {
     setProjectDraft,
     friendDisambiguation,
     setFriendDisambiguation,
+    actionLog,
+    addActionLog,
   } = useAssistantChat();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [friends, setFriends] = useState<Profile[]>([]);
@@ -536,13 +538,17 @@ export default function AssistantRoute() {
             : message,
         ),
       );
+      addActionLog('done', `Nachricht an ${pending.friendName} gesendet: „${pending.body}“`);
     } catch (error) {
       console.error('Nachricht konnte nicht gesendet werden:', error);
+      addActionLog('failed', `Nachricht an ${pending.friendName} konnte nicht gesendet werden`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Nachricht konnte nicht gesendet werden.')}`);
     }
   }
 
   function handleDismissMessage(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingMessage;
+    if (pending) addActionLog('cancelled', `Nachricht an ${pending.friendName} abgebrochen`);
     setMessages((current) =>
       current.map((message) => (message.id === messageId ? { ...message, pendingMessage: undefined } : message)),
     );
@@ -571,13 +577,17 @@ export default function AssistantRoute() {
             : message,
         ),
       );
+      addActionLog('done', `Freundschaftsanfrage an ${pending.targetName} gesendet`);
     } catch (error) {
       console.error('Freundschaftsanfrage fehlgeschlagen:', error);
+      addActionLog('failed', `Freundschaftsanfrage an ${pending.targetName} fehlgeschlagen`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Freundschaftsanfrage konnte nicht gesendet werden.')}`);
     }
   }
 
   function handleDismissFriendAdd(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingFriendAdd;
+    if (pending) addActionLog('cancelled', `Freundschaftsanfrage an ${pending.targetName} abgebrochen`);
     setMessages((current) =>
       current.map((message) => (message.id === messageId ? { ...message, pendingFriendAdd: undefined } : message)),
     );
@@ -603,13 +613,17 @@ export default function AssistantRoute() {
       );
 
       setFriends(await fetchFriends(userId));
+      addActionLog('done', `${pending.friendName} aus der Freundesliste entfernt`);
     } catch (error) {
       console.error('Freund konnte nicht entfernt werden:', error);
+      addActionLog('failed', `${pending.friendName} konnte nicht entfernt werden`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Freund konnte nicht entfernt werden.')}`);
     }
   }
 
   function handleDismissFriendRemove(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingFriendRemove;
+    if (pending) addActionLog('cancelled', `Entfernen von ${pending.friendName} abgebrochen`);
     setMessages((current) =>
       current.map((message) =>
         message.id === messageId ? { ...message, pendingFriendRemove: undefined } : message,
@@ -636,13 +650,17 @@ export default function AssistantRoute() {
       const userId = await getCurrentUserId();
       if (userId) setProjects(await fetchProjectsOverview(userId));
       pushAssistantText(`Projekt „${pending.projectName}“ wurde gelöscht.`);
+      addActionLog('done', `Projekt „${pending.projectName}“ gelöscht (inkl. ${pending.taskCount} Task(s))`);
     } catch (error) {
       console.error('Projekt konnte nicht gelöscht werden:', error);
+      addActionLog('failed', `Projekt „${pending.projectName}“ konnte nicht gelöscht werden`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Projekt konnte nicht gelöscht werden.')}`);
     }
   }
 
   function handleDismissProjectDelete(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingProjectDelete;
+    if (pending) addActionLog('cancelled', `Löschen von Projekt „${pending.projectName}“ abgebrochen`);
     setMessages((current) =>
       current.map((message) =>
         message.id === messageId ? { ...message, pendingProjectDelete: undefined } : message,
@@ -682,13 +700,17 @@ export default function AssistantRoute() {
             : message,
         ),
       );
+      addActionLog('done', `Task „${pending.title}“ in Projekt „${matchedProject.name}“ erstellt`);
     } catch (error) {
       console.error('Task konnte nicht erstellt werden:', error);
+      addActionLog('failed', `Task „${pending.title}“ konnte nicht erstellt werden`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Task konnte nicht erstellt werden.')}`);
     }
   }
 
   function handleDismissTask(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingTask;
+    if (pending) addActionLog('cancelled', `Task „${pending.title}“ abgebrochen`);
     setMessages((current) =>
       current.map((message) => (message.id === messageId ? { ...message, pendingTask: undefined } : message)),
     );
@@ -738,13 +760,22 @@ export default function AssistantRoute() {
 
       const overview = await fetchProjectsOverview(userId);
       setProjects(overview);
+      addActionLog(
+        'done',
+        pending.existingProjectId
+          ? `${pending.taskTitles.length} Task(s) zu Projekt „${pending.name}“ hinzugefügt`
+          : `Projekt „${pending.name}“ mit ${pending.taskTitles.length} Task(s) erstellt`,
+      );
     } catch (error) {
       console.error('Projekt/Tasks konnten nicht erstellt werden:', error);
+      addActionLog('failed', `Projekt „${pending.name}“ konnte nicht (vollständig) gespeichert werden`);
       pushAssistantText(`⚠️ ${getErrorMessage(error, 'Konnte nicht gespeichert werden.')}`);
     }
   }
 
   function handleDismissProject(messageId: string) {
+    const pending = messages.find((message) => message.id === messageId)?.pendingProject;
+    if (pending) addActionLog('cancelled', `Projekt „${pending.name}“ abgebrochen`);
     setMessages((current) =>
       current.map((message) =>
         message.id === messageId ? { ...message, pendingProject: undefined } : message,
@@ -755,6 +786,7 @@ export default function AssistantRoute() {
   return (
     <AssistantScreen
       messages={messages}
+      actionLog={actionLog}
       isThinking={isThinking}
       loadError={loadError}
       onBack={() => router.back()}

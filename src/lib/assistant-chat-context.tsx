@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { createContext, useCallback, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 
 import type { ChatMessage } from "@/components/assistant-screen";
 import type { Profile, Priority } from "@/types/tasks";
@@ -28,7 +28,17 @@ export type FriendDisambiguation = {
     | { kind: "friend_status" };
 };
 
+/** One line in the "Blackbox": something the assistant did (or was stopped from doing). */
+export type ActionLogEntry = {
+  id: string;
+  at: number;
+  status: "done" | "failed" | "cancelled";
+  summary: string;
+};
+
 type AssistantChatState = {
+  actionLog: ActionLogEntry[];
+  addActionLog: (status: ActionLogEntry["status"], summary: string) => void;
   messages: ChatMessage[];
   setMessages: Dispatch<SetStateAction<ChatMessage[]>>;
   projectDraft: ProjectDraft | null;
@@ -48,10 +58,18 @@ export function AssistantChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [projectDraft, setProjectDraft] = useState<ProjectDraft | null>(null);
   const [friendDisambiguation, setFriendDisambiguation] = useState<FriendDisambiguation | null>(null);
+  const [actionLog, setActionLog] = useState<ActionLogEntry[]>([]);
+
+  const addActionLog = useCallback((status: ActionLogEntry["status"], summary: string) => {
+    const at = Date.now();
+    setActionLog((current) => [...current, { id: `a${at}-${current.length}`, at, status, summary }]);
+  }, []);
 
   return (
     <AssistantChatContext.Provider
       value={{
+        actionLog,
+        addActionLog,
         messages,
         setMessages,
         projectDraft,

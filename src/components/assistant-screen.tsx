@@ -11,15 +11,18 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Icon } from "@/components/icons";
 import { PriorityBadge } from "@/components/priority-badge";
 import { Spacing } from "@/constants/theme";
+import type { ActionLogEntry } from "@/lib/assistant-chat-context";
 import type { TaskIntent } from "@/lib/ollama";
 import type { Palette } from "@/theme/colors";
 import { useColors } from "@/theme/theme-context";
@@ -73,6 +76,7 @@ export type ChatMessage = {
 
 export type AssistantScreenProps = {
   messages: ChatMessage[];
+  actionLog: ActionLogEntry[];
   isThinking?: boolean;
   loadError?: string | null;
   onBack?: () => void;
@@ -136,6 +140,7 @@ function findActivePending(messages: ChatMessage[]): ActivePending | null {
 
 export function AssistantScreen({
   messages,
+  actionLog,
   isThinking,
   loadError,
   onBack,
@@ -172,6 +177,8 @@ export function AssistantScreen({
 
   const [draft, setDraft] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
+  const [showBlackbox, setShowBlackbox] = useState(false);
+  const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList>(null);
 
   if (!fontsLoaded && !fontError) {
@@ -240,8 +247,54 @@ export function AssistantScreen({
             <Text style={styles.headerTitle}>KI-Assistent</Text>
             <Text style={styles.headerSubtitle}>Lokal über Ollama · Prototyp</Text>
           </View>
+          <Pressable
+            onPress={() => setShowBlackbox(true)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Blackbox öffnen"
+            style={styles.blackboxButton}
+          >
+            <Icon name="blackbox" size={26} color={colors.ink} />
+          </Pressable>
         </View>
         <View style={styles.headerDivider} />
+
+        {showBlackbox && (
+          <View style={[styles.blackboxOverlay, { top: insets.top }]}>
+            <View style={styles.header}>
+              <Pressable
+                onPress={() => setShowBlackbox(false)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Zurück"
+                style={styles.backButton}
+              >
+                <Text style={styles.backButtonIcon}>‹</Text>
+              </Pressable>
+              <View style={styles.headerTextCol}>
+                <Text style={styles.headerTitle}>Blackbox</Text>
+                <Text style={styles.headerSubtitle}>Alle Aktionen der KI in dieser Sitzung</Text>
+              </View>
+            </View>
+            <View style={styles.headerDivider} />
+            <ScrollView contentContainerStyle={styles.blackboxList}>
+              {actionLog.length === 0 ? (
+                <Text style={styles.blackboxEmpty}>Die KI hat noch nichts getan.</Text>
+              ) : (
+                [...actionLog].reverse().map((entry) => (
+                  <View key={entry.id} style={styles.blackboxRow}>
+                    <Text style={styles.blackboxMeta}>
+                      {new Date(entry.at).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                      {"  "}
+                      {entry.status === "done" ? "✓ AUSGEFÜHRT" : entry.status === "failed" ? "⚠ FEHLGESCHLAGEN" : "✕ ABGEBROCHEN"}
+                    </Text>
+                    <Text style={styles.blackboxSummary}>{entry.summary}</Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        )}
 
         {loadError && (
           <Text style={styles.errorBanner} accessibilityRole="alert">
@@ -439,7 +492,7 @@ export function AssistantScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Vorschlag verwerfen"
               >
-                <Text style={styles.taskCardDismissText}>Verwerfen</Text>
+                <Text style={styles.taskCardDismissText}>ABBRECHEN</Text>
               </Pressable>
               <Pressable
                 onPress={() => handleConfirm(activePending)}
@@ -531,7 +584,50 @@ const makeStyles = (colors: Palette) =>
     color: colors.ink,
   },
   headerTextCol: {
+    flex: 1,
     gap: 1,
+  },
+  blackboxOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    backgroundColor: colors.warmCream,
+  },
+  blackboxButton: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: -Spacing.one,
+  },
+  blackboxList: {
+    padding: 19,
+    gap: Spacing.three,
+  },
+  blackboxEmpty: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 14,
+    color: colors.textMutedLight,
+  },
+  blackboxRow: {
+    gap: 2,
+    paddingBottom: Spacing.three,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  blackboxMeta: {
+    fontFamily: "DMMono_400Regular",
+    fontSize: 10,
+    letterSpacing: 0.3,
+    color: colors.textMutedLight,
+  },
+  blackboxSummary: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 14,
+    color: colors.ink,
   },
   headerTitle: {
     fontFamily: "DMSans_600SemiBold",

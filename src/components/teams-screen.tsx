@@ -687,16 +687,7 @@ function FriendCard({
 }
 
 function AddFriendGlyph() {
-  const colors = useColors();
-  const glyphStyles = useMemo(() => makeGlyphStyles(colors), [colors]);
-  return (
-    <View style={glyphStyles.addFriend}>
-      <View style={glyphStyles.addFriendHead} />
-      <View style={glyphStyles.addFriendBody} />
-      <View style={glyphStyles.addFriendPlusH} />
-      <View style={glyphStyles.addFriendPlusV} />
-    </View>
-  );
+  return <Icon name="userPlus" size={30} color="#FFFFFF" />;
 }
 
 const CARD_RADIUS = 15;
@@ -1038,47 +1029,5 @@ const makeGlyphStyles = (colors: Palette) =>
       borderTopWidth: 0,
       borderBottomLeftRadius: 3,
       borderBottomRightRadius: 3,
-    },
-    addFriend: {
-      width: 24,
-      height: 22,
-      alignItems: "center",
-      justifyContent: "flex-end",
-    },
-    addFriendHead: {
-      position: "absolute",
-      top: 0,
-      width: 9,
-      height: 9,
-      borderRadius: 4.5,
-      borderWidth: 1.8,
-      borderColor: "#FFFFFF",
-    },
-    addFriendBody: {
-      width: 15,
-      height: 9,
-      borderTopLeftRadius: 7.5,
-      borderTopRightRadius: 7.5,
-      borderWidth: 1.8,
-      borderColor: "#FFFFFF",
-      borderBottomWidth: 0,
-    },
-    addFriendPlusH: {
-      position: "absolute",
-      right: -1,
-      top: 2,
-      width: 9,
-      height: 1.8,
-      backgroundColor: colors.surface,
-      borderRadius: 1,
-    },
-    addFriendPlusV: {
-      position: "absolute",
-      right: 3,
-      top: -2,
-      width: 1.8,
-      height: 9,
-      backgroundColor: colors.surface,
-      borderRadius: 1,
     },
   });
