@@ -63,6 +63,12 @@ export type ChatMessage = {
     friendName: string;
     confirmed?: boolean;
   };
+  pendingProjectDelete?: {
+    projectId: string;
+    projectName: string;
+    taskCount: number;
+    confirmed?: boolean;
+  };
 };
 
 export type AssistantScreenProps = {
@@ -81,6 +87,8 @@ export type AssistantScreenProps = {
   onDismissFriendAdd: (messageId: string) => void;
   onConfirmFriendRemove: (messageId: string) => Promise<void> | void;
   onDismissFriendRemove: (messageId: string) => void;
+  onConfirmProjectDelete: (messageId: string) => Promise<void> | void;
+  onDismissProjectDelete: (messageId: string) => void;
 };
 
 function formatDueDate(dueDate: string | null): string {
@@ -97,7 +105,8 @@ type ActivePending =
   | { messageId: string; kind: "project"; data: NonNullable<ChatMessage["pendingProject"]> }
   | { messageId: string; kind: "message"; data: NonNullable<ChatMessage["pendingMessage"]> }
   | { messageId: string; kind: "friend_add"; data: NonNullable<ChatMessage["pendingFriendAdd"]> }
-  | { messageId: string; kind: "friend_remove"; data: NonNullable<ChatMessage["pendingFriendRemove"]> };
+  | { messageId: string; kind: "friend_remove"; data: NonNullable<ChatMessage["pendingFriendRemove"]> }
+  | { messageId: string; kind: "project_delete"; data: NonNullable<ChatMessage["pendingProjectDelete"]> };
 
 /** The one open confirmation (if any) — rendered as a fixed bar, not inside the scrollable list. */
 function findActivePending(messages: ChatMessage[]): ActivePending | null {
@@ -117,6 +126,9 @@ function findActivePending(messages: ChatMessage[]): ActivePending | null {
     }
     if (message.pendingFriendRemove && !message.pendingFriendRemove.confirmed) {
       return { messageId: message.id, kind: "friend_remove", data: message.pendingFriendRemove };
+    }
+    if (message.pendingProjectDelete && !message.pendingProjectDelete.confirmed) {
+      return { messageId: message.id, kind: "project_delete", data: message.pendingProjectDelete };
     }
   }
   return null;
@@ -138,6 +150,8 @@ export function AssistantScreen({
   onDismissFriendAdd,
   onConfirmFriendRemove,
   onDismissFriendRemove,
+  onConfirmProjectDelete,
+  onDismissProjectDelete,
 }: AssistantScreenProps) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -184,8 +198,10 @@ export function AssistantScreen({
         await onConfirmMessage(pending.messageId);
       } else if (pending.kind === "friend_add") {
         await onConfirmFriendAdd(pending.messageId);
-      } else {
+      } else if (pending.kind === "friend_remove") {
         await onConfirmFriendRemove(pending.messageId);
+      } else {
+        await onConfirmProjectDelete(pending.messageId);
       }
     } finally {
       setIsConfirming(false);
@@ -201,8 +217,10 @@ export function AssistantScreen({
       onDismissMessage(pending.messageId);
     } else if (pending.kind === "friend_add") {
       onDismissFriendAdd(pending.messageId);
-    } else {
+    } else if (pending.kind === "friend_remove") {
       onDismissFriendRemove(pending.messageId);
+    } else {
+      onDismissProjectDelete(pending.messageId);
     }
   }
 
@@ -317,6 +335,15 @@ export function AssistantScreen({
                   </Text>
                 </View>
               )}
+
+              {item.pendingProjectDelete && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryText} numberOfLines={2}>
+                    {item.pendingProjectDelete.confirmed ? "✓ " : "📋 "}
+                    Projekt {item.pendingProjectDelete.projectName} löschen
+                  </Text>
+                </View>
+              )}
             </View>
           )}
           ItemSeparatorComponent={() => <View style={{ height: Spacing.three }} />}
@@ -342,7 +369,9 @@ export function AssistantScreen({
                     ? "NACHRICHT"
                     : activePending.kind === "friend_add"
                       ? "FREUND HINZUFÜGEN"
-                      : "FREUND ENTFERNEN"}
+                      : activePending.kind === "friend_remove"
+                        ? "FREUND ENTFERNEN"
+                        : "PROJEKT LÖSCHEN"}
             </Text>
             <Text style={styles.taskCardTitle} numberOfLines={2}>
               {activePending.kind === "task"
@@ -353,7 +382,9 @@ export function AssistantScreen({
                     ? activePending.data.friendName
                     : activePending.kind === "friend_add"
                       ? activePending.data.targetName
-                      : activePending.data.friendName}
+                      : activePending.kind === "friend_remove"
+                        ? activePending.data.friendName
+                        : activePending.data.projectName}
             </Text>
 
             {activePending.kind === "task" && (
@@ -394,6 +425,13 @@ export function AssistantScreen({
               <Text style={styles.taskCardMeta}>„{activePending.data.body}"</Text>
             )}
 
+            {activePending.kind === "project_delete" && (
+              <Text style={styles.taskCardMeta}>
+                {activePending.data.taskCount} Task{activePending.data.taskCount === 1 ? "" : "s"}, Phasen und
+                Mitglieder werden mitgelöscht. Das kann nicht rückgängig gemacht werden.
+              </Text>
+            )}
+
             <View style={styles.taskCardActions}>
               <Pressable
                 onPress={() => handleDismiss(activePending)}
@@ -424,7 +462,9 @@ export function AssistantScreen({
                           ? "NACHRICHT SENDEN"
                           : activePending.kind === "friend_add"
                             ? "ANFRAGE SENDEN"
-                            : "ENTFERNEN"}
+                            : activePending.kind === "friend_remove"
+                              ? "ENTFERNEN"
+                              : "ENDGÜLTIG LÖSCHEN"}
                   </Text>
                 )}
               </Pressable>

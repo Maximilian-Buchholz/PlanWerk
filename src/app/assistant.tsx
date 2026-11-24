@@ -12,7 +12,7 @@ import {
   extractTaskIntent,
   extractTaskPriorities,
 } from '@/lib/ollama';
-import { createProject, createTask, fetchProjectsOverview, type ProjectSummary } from '@/lib/tasks';
+import { createProject, createTask, deleteProject, fetchProjectsOverview, type ProjectSummary } from '@/lib/tasks';
 import type { Profile } from '@/types/tasks';
 
 function findProject(projects: ProjectSummary[], name: string | null): ProjectSummary | null {
@@ -276,6 +276,29 @@ export default function AssistantRoute() {
           return;
         }
         pushPendingFriendRemove(candidates[0], intent.message);
+        return;
+      }
+
+      if (intent.action === 'delete_project') {
+        const lower = intent.projectName?.trim().toLowerCase();
+        const matchedProject = lower ? projects.find((project) => project.name.toLowerCase() === lower) : null;
+        if (!matchedProject) {
+          pushAssistantText('Welches Projekt soll gelöscht werden? Nenne bitte den genauen Namen.');
+          return;
+        }
+        setMessages((current) => [
+          ...current,
+          {
+            id: nextId(),
+            role: 'assistant',
+            text: `Projekt „${matchedProject.name}“ endgültig löschen?`,
+            pendingProjectDelete: {
+              projectId: matchedProject.id,
+              projectName: matchedProject.name,
+              taskCount: matchedProject.totalTasks,
+            },
+          },
+        ]);
         return;
       }
 
@@ -594,6 +617,39 @@ export default function AssistantRoute() {
     );
   }
 
+  async function handleConfirmProjectDelete(messageId: string) {
+    const target = messages.find((message) => message.id === messageId);
+    const pending = target?.pendingProjectDelete;
+    if (!pending) return;
+
+    try {
+      await deleteProject(pending.projectId);
+
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId && message.pendingProjectDelete
+            ? { ...message, pendingProjectDelete: { ...message.pendingProjectDelete, confirmed: true } }
+            : message,
+        ),
+      );
+
+      const userId = await getCurrentUserId();
+      if (userId) setProjects(await fetchProjectsOverview(userId));
+      pushAssistantText(`Projekt „${pending.projectName}“ wurde gelöscht.`);
+    } catch (error) {
+      console.error('Projekt konnte nicht gelöscht werden:', error);
+      pushAssistantText(`⚠️ ${getErrorMessage(error, 'Projekt konnte nicht gelöscht werden.')}`);
+    }
+  }
+
+  function handleDismissProjectDelete(messageId: string) {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId ? { ...message, pendingProjectDelete: undefined } : message,
+      ),
+    );
+  }
+
   async function handleConfirmTask(messageId: string) {
     const target = messages.find((message) => message.id === messageId);
     const pending = target?.pendingTask;
@@ -713,6 +769,8 @@ export default function AssistantRoute() {
       onDismissFriendAdd={handleDismissFriendAdd}
       onConfirmFriendRemove={handleConfirmFriendRemove}
       onDismissFriendRemove={handleDismissFriendRemove}
+      onConfirmProjectDelete={handleConfirmProjectDelete}
+      onDismissProjectDelete={handleDismissProjectDelete}
     />
   );
 }
